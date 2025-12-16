@@ -117,7 +117,7 @@ async def get_stats_callback(_, query: types.CallbackQuery):
             header = query.lang["gstats_5"].format(limit, app.name)
         msg = header + "\n" + msg
     
-    med = InputMediaPhoto(media=config.GLOBAL_IMG_URL, caption=msg)
+    med = InputMediaPhoto(media=config.GLOBAL_IMG_URL, caption=msg, parse_mode=enums.ParseMode.MARKDOWN)
     try:
         await query.edit_message_media(
             media=med,
@@ -167,7 +167,7 @@ async def overall_stats_callback(_, query: types.CallbackQuery):
 🎵 **Playlist Limit:** {config.PLAYLIST_LIMIT}
 🎵 **Queue Limit:** {config.QUEUE_LIMIT}"""
     
-    med = InputMediaPhoto(media=config.STATS_IMG_URL, caption=text)
+    med = InputMediaPhoto(media=config.STATS_IMG_URL, caption=text, parse_mode=enums.ParseMode.MARKDOWN)
     try:
         await query.edit_message_media(
             media=med,
@@ -222,7 +222,7 @@ async def sudo_stats_callback(_, query: types.CallbackQuery):
 **Storage Used:** {used_storage} GB
 **Storage Free:** {total_storage - used_storage} GB"""
     
-    med = InputMediaPhoto(media=config.STATS_IMG_URL, caption=text)
+    med = InputMediaPhoto(media=config.STATS_IMG_URL, caption=text, parse_mode=enums.ParseMode.MARKDOWN)
     try:
         await query.edit_message_media(
             media=med,
@@ -249,7 +249,8 @@ async def stats_back_callback(_, query: types.CallbackQuery):
     is_sudo = query.from_user.id in app.sudoers
     med = InputMediaPhoto(
         media=config.STATS_IMG_URL,
-        caption=query.lang["gstats_11"].format(app.name)
+        caption=query.lang["gstats_11"].format(app.name),
+        parse_mode=enums.ParseMode.MARKDOWN
     )
     try:
         await query.edit_message_media(
