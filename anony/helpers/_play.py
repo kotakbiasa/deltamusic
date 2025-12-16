@@ -14,17 +14,19 @@ from anony.helpers import utils
 def checkUB(play):
     async def wrapper(_, m: types.Message):
         if not m.from_user:
-            return await m.reply_text(m.lang["play_user_invalid"])
+            return await m.reply_text("Anda adalah admin anonim.\n\nKembali ke akun pengguna.")
 
         chat_id = m.chat.id
 
         if not m.reply_to_message and (
             len(m.command) < 2 or (len(m.command) == 2 and m.command[1] == "-f")
         ):
-            return await m.reply_text(m.lang["play_usage"])
+            return await m.reply_text("<b>Penggunaan:</b>\n\n<code>/play attention</code>")
 
         if len(queue.get_queue(chat_id)) >= config.QUEUE_LIMIT:
-            return await m.reply_text(m.lang["play_queue_full"].format(config.QUEUE_LIMIT))
+            return await m.reply_text(
+                f"Batas antrian ({config.QUEUE_LIMIT}) telah tercapai. Silakan tunggu track dalam antrian selesai diputar, lalu coba lagi."
+            )
 
         force = m.command[0].endswith("force") or (
             len(m.command) > 1 and "-f" in m.command[1]
@@ -41,7 +43,9 @@ def checkUB(play):
                 and not await db.is_auth(chat_id, m.from_user.id)
                 and not m.from_user.id in app.sudoers
             ):
-                return await m.reply_text(m.lang["play_admin"])
+                return await m.reply_text(
+                    "<u><b>Hanya admin yang bisa play</b></u>\n\nHanya admin yang diizinkan memutar musik di chat ini."
+                )
 
         if chat_id not in db.active_calls:
             client = await db.get_client(chat_id)
@@ -57,15 +61,10 @@ def checkUB(play):
                         )
                     except:
                         return await m.reply_text(
-                            m.lang["play_banned"].format(
-                                app.name,
-                                client.id,
-                                client.mention,
-                                f"@{client.username}" if client.username else None,
-                            )
+                            f"<u><b>Asisten {app.name} dibanned dari chat Anda</b></u>\n\n<b>ID:</b> <code>{client.id}</code>\n<b>Nama:</b> {client.mention}\n<b>Username:</b> @{client.username if client.username else 'None'}"
                         )
             except errors.ChatAdminRequired:
-                return await m.reply_text(m.lang["admin_required"])
+                return await m.reply_text("Bot memerlukan izin <b>undang pengguna via link</b> untuk bekerja.")
             except (errors.UserNotParticipant, errors.exceptions.bad_request_400.UserNotParticipant):
                 if m.chat.username:
                     invite_link = m.chat.username
@@ -79,13 +78,13 @@ def checkUB(play):
                         if not invite_link:
                             invite_link = await app.export_chat_invite_link(chat_id)
                     except errors.ChatAdminRequired:
-                        return await m.reply_text(m.lang["admin_required"])
+                        return await m.reply_text("Bot memerlukan izin <b>undang pengguna via link</b> untuk bekerja.")
                     except Exception as ex:
                         return await m.reply_text(
-                            m.lang["play_invite_error"].format(type(ex).__name__)
+                            f"Gagal mengundang asisten ke chat.\n\nAlasan: <code>{type(ex).__name__}</code>"
                         )
 
-                umm = await m.reply_text(m.lang["play_invite"].format(app.name))
+                umm = await m.reply_text(f"Tunggu sebentar...\n\nMengundang asisten {app.name} ke chat Anda.")
                 await asyncio.sleep(2)
                 try:
                     await client.join_chat(invite_link)
@@ -96,12 +95,12 @@ def checkUB(play):
                         await client.approve_chat_join_request(chat_id, client.id)
                     except Exception as ex:
                         return await umm.edit_text(
-                            m.lang["play_invite_error"].format(type(ex).__name__)
+                            f"Gagal mengundang asisten ke chat.\n\nAlasan: <code>{type(ex).__name__}</code>"
                         )
                 except Exception as ex:
                     logger.error(f"Error joining chat - {chat_id}: {ex}")
                     return await umm.edit_text(
-                        m.lang["play_invite_error"].format(type(ex).__name__)
+                        f"Gagal mengundang asisten ke chat.\n\nAlasan: <code>{type(ex).__name__}</code>"
                     )
 
                 await umm.delete()

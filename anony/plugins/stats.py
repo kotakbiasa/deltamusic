@@ -11,26 +11,24 @@ import psutil
 from pyrogram import enums, filters, types
 from pyrogram.types import InputMediaPhoto
 
-from anony import app, config, db, lang, userbot
+from anony import app, config, db, userbot
 from anony.helpers import buttons
 from anony.plugins import all_modules
 
 
 @app.on_message(filters.command(["stats"]) & filters.group & ~app.bl_users)
-@lang.language()
 async def stats_command(_, m: types.Message):
     """Main stats command with button navigation."""
     is_sudo = m.from_user.id in app.sudoers
     await m.reply_photo(
         photo=config.STATS_IMG_URL,
-        caption=m.lang["gstats_11"].format(app.name),
+        caption=f"🎵 **Selamat Datang di Statistik {app.name}!**\n\nPilih kategori statistik yang ingin dilihat:",
         parse_mode=enums.ParseMode.MARKDOWN,
-        reply_markup=buttons.stats_buttons(m.lang, is_sudo),
+        reply_markup=buttons.stats_buttons({}, is_sudo),
     )
 
 
 @app.on_callback_query(filters.regex("GetStatsNow") & ~app.bl_users)
-@lang.language()
 async def get_stats_callback(_, query: types.CallbackQuery):
     """Handle stats data requests (Tracks/Users/Chats/Here)."""
     try:
@@ -42,10 +40,9 @@ async def get_stats_callback(_, query: types.CallbackQuery):
     what = callback_data.split(None, 1)[1]
     chat_id = query.message.chat.id
     
+    target = f"Grup {query.message.chat.title}" if what == "Here" else what
     await query.edit_message_caption(
-        query.lang["gstats_3"].format(
-            f"Grup {query.message.chat.title}" if what == "Here" else what
-        ),
+        f"📊 **Top 10 {target}**",
         parse_mode=enums.ParseMode.MARKDOWN
     )
     
@@ -64,9 +61,9 @@ async def get_stats_callback(_, query: types.CallbackQuery):
     if not stats:
         await asyncio.sleep(1)
         return await query.edit_message_caption(
-            query.lang["gstats_2"],
+            "Belum ada data statistik.",
             parse_mode=enums.ParseMode.MARKDOWN,
-            reply_markup=buttons.back_stats_markup(query.lang)
+            reply_markup=buttons.back_stats_markup({})
         )
     
     # Build message
@@ -89,11 +86,9 @@ async def get_stats_callback(_, query: types.CallbackQuery):
         
         if what == "Tracks":
             queries = await db.get_queries()
-            header = query.lang["gstats_4"].format(
-                queries, app.name, len(stats), total_plays, limit
-            )
+            header = f"🎵 **Statistik Global**\n\nTotal Queries: {queries}\nBot: {app.name}\nTotal Tracks: {len(stats)}\nTotal Plays: {total_plays}\n\n**Top {limit} Most Played:**\n\n"
         else:
-            header = query.lang["gstats_7"].format(len(stats), total_plays, limit)
+            header = f"📊 **Statistik Grup**\n\nTotal Tracks: {len(stats)}\nTotal Plays: {total_plays}\n\n**Top {limit} Lagu:**\n\n"
         msg = header + "\n" + msg
         
     elif what in ["Users", "Chats"]:
@@ -112,28 +107,27 @@ async def get_stats_callback(_, query: types.CallbackQuery):
             msg += f"💖 `{extract}` dimainkan {count} kali.\n\n"
         
         if what == "Users":
-            header = query.lang["gstats_6"].format(limit, app.name)
+            header = f"👥 **Top {limit} User Teraktif di {app.name}:**\n\n"
         else:
-            header = query.lang["gstats_5"].format(limit, app.name)
+            header = f"📈 **Top {limit} Grup Teraktif di {app.name}:**\n\n"
         msg = header + "\n" + msg
     
     med = InputMediaPhoto(media=config.GLOBAL_IMG_URL, caption=msg, parse_mode=enums.ParseMode.MARKDOWN)
     try:
         await query.edit_message_media(
             media=med,
-            reply_markup=buttons.back_stats_markup(query.lang)
+            reply_markup=buttons.back_stats_markup({})
         )
     except:
         await query.message.reply_photo(
             photo=config.GLOBAL_IMG_URL,
             caption=msg,
             parse_mode=enums.ParseMode.MARKDOWN,
-            reply_markup=buttons.back_stats_markup(query.lang)
+            reply_markup=buttons.back_stats_markup({})
         )
 
 
 @app.on_callback_query(filters.regex("TopOverall") & ~app.bl_users)
-@lang.language()
 async def overall_stats_callback(_, query: types.CallbackQuery):
     """Display bot info and stats."""
     try:
@@ -141,7 +135,7 @@ async def overall_stats_callback(_, query: types.CallbackQuery):
     except:
         pass
     
-    await query.edit_message_caption(query.lang["gstats_8"], parse_mode=enums.ParseMode.MARKDOWN)
+    await query.edit_message_caption("Mengambil statistik bot...", parse_mode=enums.ParseMode.MARKDOWN)
     
     served_chats = len(await db.get_chats())
     served_users = len(await db.get_users())
@@ -171,19 +165,18 @@ async def overall_stats_callback(_, query: types.CallbackQuery):
     try:
         await query.edit_message_media(
             media=med,
-            reply_markup=buttons.overall_stats_markup(query.lang, main=True)
+            reply_markup=buttons.overall_stats_markup({}, main=True)
         )
     except:
         await query.message.reply_photo(
             photo=config.STATS_IMG_URL,
             caption=text,
             parse_mode=enums.ParseMode.MARKDOWN,
-            reply_markup=buttons.overall_stats_markup(query.lang, main=True)
+            reply_markup=buttons.overall_stats_markup({}, main=True)
         )
 
 
 @app.on_callback_query(filters.regex("bot_stats_sudo") & ~app.bl_users)
-@lang.language()
 async def sudo_stats_callback(_, query: types.CallbackQuery):
     """System info for sudo users only."""
     if query.from_user.id not in app.sudoers:
@@ -226,19 +219,18 @@ async def sudo_stats_callback(_, query: types.CallbackQuery):
     try:
         await query.edit_message_media(
             media=med,
-            reply_markup=buttons.overall_stats_markup(query.lang)
+            reply_markup=buttons.overall_stats_markup({})
         )
     except:
         await query.message.reply_photo(
             photo=config.STATS_IMG_URL,
             caption=text,
             parse_mode=enums.ParseMode.MARKDOWN,
-            reply_markup=buttons.overall_stats_markup(query.lang)
+            reply_markup=buttons.overall_stats_markup({})
         )
 
 
 @app.on_callback_query(filters.regex("stats_back") & ~app.bl_users)
-@lang.language()
 async def stats_back_callback(_, query: types.CallbackQuery):
     """Back button - return to main stats menu."""
     try:
@@ -249,18 +241,18 @@ async def stats_back_callback(_, query: types.CallbackQuery):
     is_sudo = query.from_user.id in app.sudoers
     med = InputMediaPhoto(
         media=config.STATS_IMG_URL,
-        caption=query.lang["gstats_11"].format(app.name),
+        caption=f"🎵 **Selamat Datang di Statistik {app.name}!**\n\nPilih kategori statistik yang ingin dilihat:",
         parse_mode=enums.ParseMode.MARKDOWN
     )
     try:
         await query.edit_message_media(
             media=med,
-            reply_markup=buttons.stats_buttons(query.lang, is_sudo)
+            reply_markup=buttons.stats_buttons({}, is_sudo)
         )
     except:
         await query.message.reply_photo(
             photo=config.STATS_IMG_URL,
-            caption=query.lang["gstats_11"].format(app.name),
+            caption=f"🎵 **Selamat Datang di Statistik {app.name}!**\n\nPilih kategori statistik yang ingin dilihat:",
             parse_mode=enums.ParseMode.MARKDOWN,
-            reply_markup=buttons.stats_buttons(query.lang, is_sudo)
+            reply_markup=buttons.stats_buttons({}, is_sudo)
         )

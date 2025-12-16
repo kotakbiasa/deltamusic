@@ -8,7 +8,7 @@ import time
 
 from pyrogram import enums, filters, types
 
-from anony import anon, app, config, db, lang, queue, tasks, userbot, yt
+from anony import anon, app, config, db, queue, tasks, userbot, yt
 from anony.helpers import buttons
 
 
@@ -101,16 +101,15 @@ async def vc_watcher(sleep=15):
             played = await client.time(chat_id)
             participants = await client.get_participants(chat_id)
             if len(participants) < 2 and played > 30:
-                _lang = await lang.get_lang(chat_id)
                 sent = await app.edit_message_reply_markup(
                     chat_id=chat_id,
                     message_id=queue.get_current(chat_id).message_id,
                     reply_markup=buttons.controls(
-                        chat_id=chat_id, status=_lang["stopped"], remove=True
+                        chat_id=chat_id, status="Streaming dihentikan", remove=True
                     ),
                 )
                 await anon.stop(chat_id)
-                await sent.reply_text(_lang["auto_left"])
+                await sent.reply_text("Saya menunggu, mengamati, menguap... lalu meninggalkan obrolan video.")
 
 
 if config.AUTO_END:

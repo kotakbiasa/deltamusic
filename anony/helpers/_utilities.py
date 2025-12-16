@@ -90,16 +90,7 @@ class Utilities:
     ) -> None:
         if m.chat.id == app.logger:
             return
-        _text = m.lang["play_log"].format(
-            app.name,
-            m.chat.id,
-            m.chat.title,
-            m.from_user.id,
-            m.from_user.mention,
-            m.link,
-            title,
-            duration,
-        )
+        _text = f"<u>{app.name} Log Play</u>\n\n<b>Chat:</b> <code>{m.chat.id}</code> | {m.chat.title}\n<b>User:</b> <code>{m.from_user.id}</code> | {m.from_user.mention}\n<b>Link pesan:</b> {m.link}\n\n<b>Judul:</b> {title}\n<b>Durasi:</b> {duration} menit"
         await app.send_message(chat_id=app.logger, text=_text)
 
     async def send_log(self, m: types.Message, chat: bool = False) -> None:
@@ -107,21 +98,12 @@ class Utilities:
             user = m.from_user
             return await app.send_message(
                 chat_id=app.logger,
-                text=m.lang["log_chat"].format(
-                    m.chat.id,
-                    m.chat.title,
-                    user.id if user else 0,
-                    user.mention if user else "Anonymous",
-                ),
+                text=f"<u><b>Log Chat Baru</b></u>\n\n<b>Chat:</b> <code>{m.chat.id}</code> | {m.chat.title}\n<b>User:</b> <code>{user.id if user else 0}</code> | {user.mention if user else 'Anonymous'}",
             )
 
         await app.send_message(
             chat_id=app.logger,
-            text=m.lang["log_user"].format(
-                m.from_user.id,
-                f"@{m.from_user.username}",
-                m.from_user.mention,
-            ),
+            text=f"<u><b>Log Pengguna Baru</b></u>\n\n<b>ID:</b> <code>{m.from_user.id}</code>\n<b>Nama:</b> @{m.from_user.username} | {m.from_user.mention}",
         )
 
     async def auto_delete(self, message: types.Message, delay: int = None) -> None:

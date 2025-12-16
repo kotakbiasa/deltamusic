@@ -31,7 +31,7 @@ def admin_check(func):
             return await func(_, update, *args, **kwargs)
 
         if user_id not in admins:
-            return await reply(update.lang["user_no_perms"])
+            return await reply("Anda? Kelola obrolan video? Tidak dengan izin seperti itu.")
 
         return await func(_, update, *args, **kwargs)
 
@@ -59,9 +59,9 @@ def can_manage_vc(func):
             return await func(_, update, *args, **kwargs)
 
         if isinstance(update, types.Message):
-            return await update.reply_text(update.lang["user_no_perms"])
+            return await update.reply_text("Anda? Kelola obrolan video? Tidak dengan izin seperti itu.")
         else:
-            return await update.answer(update.lang["user_no_perms"], show_alert=True)
+            return await update.answer("Anda? Kelola obrolan video? Tidak dengan izin seperti itu.", show_alert=True)
 
     return wrapper
 

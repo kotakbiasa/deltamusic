@@ -5,8 +5,7 @@
 
 from pyrogram import types
 
-from anony import app, config, lang
-from anony.core.lang import lang_codes
+from anony import app, config
 
 
 class Inline:
@@ -46,7 +45,7 @@ class Inline:
             )
         return self.ikm(keyboard)
 
-    def stats_buttons(self, _lang: dict, is_sudo: bool = False) -> types.InlineKeyboardMarkup:
+    def stats_buttons(self, _lang=None, is_sudo: bool = False) -> types.InlineKeyboardMarkup:
         """Main stats menu buttons."""
         keyboard = [
             [
@@ -55,7 +54,7 @@ class Inline:
             ],
             [
                 self.ikb(text="📢 Top Groups", callback_data="GetStatsNow Chats"),
-                self.ikb(text="📊 This Group", callback_data="GetStatsNow Here"),
+                self.ikb(text="📊 Grup Ini", callback_data="GetStatsNow Here"),
             ],
             [
                 self.ikb(text="🤖 Bot Info", callback_data="TopOverall s"),
@@ -67,11 +66,11 @@ class Inline:
             ])
         return self.ikm(keyboard)
 
-    def back_stats_markup(self, _lang: dict) -> types.InlineKeyboardMarkup:
+    def back_stats_markup(self, _lang=None) -> types.InlineKeyboardMarkup:
         """Back button for stats."""
         return self.ikm([[self.ikb(text="« Kembali", callback_data="stats_back")]])
 
-    def overall_stats_markup(self, _lang: dict, main: bool = False) -> types.InlineKeyboardMarkup:
+    def overall_stats_markup(self, _lang=None, main: bool = False) -> types.InlineKeyboardMarkup:
         """Overall stats navigation."""
         if main:
             return self.ikm([[self.ikb(text="« Kembali", callback_data="stats_back")]])
@@ -80,48 +79,34 @@ class Inline:
         ]])
 
     def help_markup(
-        self, _lang: dict, back: bool = False
+        self, _lang=None, back: bool = False
     ) -> types.InlineKeyboardMarkup:
         if back:
             rows = [
                 [
-                    self.ikb(text=_lang["back"], callback_data="help back"),
-                    self.ikb(text=_lang["close"], callback_data="help close"),
+                    self.ikb(text="Kembali", callback_data="help back"),
+                    self.ikb(text="Tutup", callback_data="help close"),
                 ]
             ]
         else:
-            # Language button removed - Indonesian only
-            # Manual mapping to skip help_3 (Bahasa)
+            # Manual mapping with hardcoded Indonesian labels
             help_map = [
-                ("admins", "help_0"),
-                ("auth", "help_1"),
-                ("blist", "help_2"),
+                ("admins", "help_0", "Admin"),
+                ("auth", "help_1", "Auth"),
+                ("blist", "help_2", "Blacklist"),
                 # help_3 (Bahasa) - SKIPPED
-                ("ping", "help_4"),
-                ("play", "help_5"),
-                ("queue", "help_6"),
-                ("stats", "help_7"),
-                ("sudo", "help_8"),
+                ("ping", "help_4", "Ping"),
+                ("play", "help_5", "Play"),
+                ("queue", "help_6", "Queue"),
+                ("stats", "help_7", "Stats"),
+                ("sudo", "help_8", "Sudoers"),
             ]
             buttons = [
-                self.ikb(text=_lang[help_key], callback_data=f"help {cb}")
-                for cb, help_key in help_map
+                self.ikb(text=label, callback_data=f"help {cb}")
+                for cb, help_key, label in help_map
             ]
             rows = [buttons[i : i + 3] for i in range(0, len(buttons), 3)]
 
-        return self.ikm(rows)
-
-    def lang_markup(self, _lang: str) -> types.InlineKeyboardMarkup:
-        langs = lang.get_languages()
-
-        buttons = [
-            self.ikb(
-                text=f"{name} ({code}) {'✔️' if code == _lang else ''}",
-                callback_data=f"lang_change {code}",
-            )
-            for code, name in langs.items()
-        ]
-        rows = [buttons[i : i + 2] for i in range(0, len(buttons), 2)]
         return self.ikm(rows)
 
     def ping_markup(self, text: str) -> types.InlineKeyboardMarkup:
@@ -149,50 +134,43 @@ class Inline:
         )
 
     def settings_markup(
-        self, lang: dict, admin_only: bool, cmd_delete: bool, language: str, chat_id: int
+        self, lang=None, admin_only=True, cmd_delete=True, language=None, chat_id=0
     ) -> types.InlineKeyboardMarkup:
         return self.ikm(
             [
                 [
                     self.ikb(
-                        text=lang["play_mode"] + " ➜",
+                        text="Mode Admin ➜",
                         callback_data="settings",
                     ),
-                    self.ikb(text=admin_only, callback_data="settings play"),
+                    self.ikb(text="Aktif" if admin_only else "Nonaktif", callback_data="settings play"),
                 ],
                 [
                     self.ikb(
-                        text=lang["cmd_delete"] + " ➜",
+                        text="Hapus Perintah ➜",
                         callback_data="settings",
                     ),
-                    self.ikb(text=cmd_delete, callback_data="settings delete"),
+                    self.ikb(text="Aktif" if cmd_delete else "Nonaktif", callback_data="settings delete"),
                 ],
-                # Language option removed - Indonesian only
             ]
         )
 
     def start_key(
-        self, lang: dict, private: bool = False
+        self, lang=None, private: bool = False
     ) -> types.InlineKeyboardMarkup:
         rows = [
             [
                 self.ikb(
-                    text=lang["add_me"],
+                    text="➕ Tambahkan saya ke grup Anda",
                     url=f"https://t.me/{app.username}?startgroup=true",
                 )
             ],
-            [self.ikb(text=lang["help"], callback_data="help")],
+            [self.ikb(text="❓ Bantuan", callback_data="help")],
             [
-                self.ikb(text=lang["channel"], url=config.SUPPORT_CHANNEL),
-                self.ikb(text=lang["donate"], callback_data="donate"),
+                self.ikb(text="📢 Channel", url=config.SUPPORT_CHANNEL),
+                self.ikb(text="💰 Donate", callback_data="donate"),
             ],
         ]
-        if private:
-            # Source button removed
-            pass
-        else:
-            # Language button removed - Indonesian only
-            pass
         return self.ikm(rows)
 
     def yt_key(self, link: str) -> types.InlineKeyboardMarkup:

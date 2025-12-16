@@ -7,7 +7,7 @@ from pathlib import Path
 
 from pyrogram import filters, types
 
-from anony import anon, app, config, db, lang, queue, tg, yt
+from anony import anon, app, config, db, queue, tg, yt
 from anony.helpers import buttons, utils
 from anony.helpers._play import checkUB
 
@@ -25,7 +25,6 @@ def playlist_to_queue(chat_id: int, tracks: list) -> str:
     & filters.group
     & ~app.bl_users
 )
-@lang.language()
 @checkUB
 async def play_hndlr(
     _,
@@ -35,7 +34,7 @@ async def play_hndlr(
     video: bool = False,
     url: str = None,
 ) -> None:
-    sent = await m.reply_text(m.lang["play_searching"])
+    sent = await m.reply_text("Mencari...")
     file = None
     mention = m.from_user.mention
     media = tg.get_media(m.reply_to_message) if m.reply_to_message else None
@@ -43,13 +42,13 @@ async def play_hndlr(
 
     if url:
         if "playlist" in url:
-            await sent.edit_text(m.lang["playlist_fetch"])
+            await sent.edit_text("Mengambil playlist...\n\nMohon tunggu.")
             tracks = await yt.playlist(
                 config.PLAYLIST_LIMIT, mention, url, video
             )
 
             if not tracks:
-                await sent.edit_text(m.lang["playlist_error"])
+                await sent.edit_text("Terjadi kesalahan saat mengambil playlist.")
                 await utils.auto_delete(sent)
                 return
 
@@ -61,7 +60,7 @@ async def play_hndlr(
 
         if not file:
             await sent.edit_text(
-                m.lang["play_not_found"].format(config.SUPPORT_CHANNEL)
+                f"Gagal memproses permintaan.\n\nJika masalah berlanjut, laporkan ke <a href={config.SUPPORT_CHANNEL}>chat dukungan</a>."
             )
             await utils.auto_delete(sent)
             return
@@ -71,23 +70,23 @@ async def play_hndlr(
         file = await yt.search(query, sent.id, video=video)
         if not file:
             await sent.edit_text(
-                m.lang["play_not_found"].format(config.SUPPORT_CHAT)
+                f"Gagal memproses permintaan.\n\nJika masalah berlanjut, laporkan ke <a href={config.SUPPORT_CHAT}>chat dukungan</a>."
             )
             await utils.auto_delete(sent)
             return
 
     elif media:
-        setattr(sent, "lang", m.lang)
+        # removed setattr lang
         file = await tg.download(m.reply_to_message, sent)
 
     if not file:
-        await sent.edit_text(m.lang["play_usage"])
+        await sent.edit_text("<b>Penggunaan:</b>\n\n<code>/play attention</code>")
         await utils.auto_delete(sent)
         return
 
     if file.duration_sec > config.DURATION_LIMIT:
         await sent.edit_text(
-            m.lang["play_duration_limit"].format(config.DURATION_LIMIT // 60)
+            f"Streaming lebih dari {config.DURATION_LIMIT // 60} menit tidak diperbolehkan."
         )
         await utils.auto_delete(sent)
         return
@@ -103,15 +102,9 @@ async def play_hndlr(
 
         if await db.get_call(m.chat.id):
             await sent.edit_text(
-                m.lang["play_queued"].format(
-                    position,
-                    file.url,
-                    file.title,
-                    file.duration,
-                    m.from_user.mention,
-                ),
+                f"<u><b>Ditambahkan ke antrian: {position}</b></u>\n\n<b>Judul:</b> <a href={file.url}>{file.title}</a>\n\n<b>Durasi:</b> {file.duration} menit\n<b>Diminta oleh:</b> {m.from_user.mention}",
                 reply_markup=buttons.play_queued(
-                    m.chat.id, file.id, m.lang["play_now"]
+                    m.chat.id, file.id, "Putar Sekarang"
                 ),
             )
             await utils.auto_delete(sent)
@@ -119,7 +112,7 @@ async def play_hndlr(
                 added = playlist_to_queue(m.chat.id, tracks)
                 playlist_msg = await app.send_message(
                     chat_id=m.chat.id,
-                    text=m.lang["playlist_queued"].format(len(tracks)) + added,
+                    text=f"<u><b>Menambahkan {len(tracks)} track dari playlist ke antrian:</b></u>\n\n" + added,
                 )
                 await utils.auto_delete(playlist_msg)
             return
@@ -129,7 +122,7 @@ async def play_hndlr(
         if Path(fname).exists():
             file.file_path = fname
         else:
-            await sent.edit_text(m.lang["play_downloading"])
+            await sent.edit_text("Mengunduh...")
             file.file_path = await yt.download(file.id, video=video)
 
     await anon.play_media(chat_id=m.chat.id, message=sent, media=file)
@@ -138,6 +131,6 @@ async def play_hndlr(
     added = playlist_to_queue(m.chat.id, tracks)
     playlist_msg = await app.send_message(
         chat_id=m.chat.id,
-        text=m.lang["playlist_queued"].format(len(tracks)) + added,
+        text=f"<u><b>Menambahkan {len(tracks)} track dari playlist ke antrian:</b></u>\n\n" + added,
     )
     await utils.auto_delete(playlist_msg)
