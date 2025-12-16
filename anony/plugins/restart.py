@@ -3,59 +3,47 @@
 # This file is part of AnonXMusic
 
 
+import asyncio
 import os
 import sys
-import shutil
-import asyncio
 
 from pyrogram import filters, types
 
-from anony import app, db, lang, stop
+from anony import app
 
 
-@app.on_message(filters.command(["logs"]) & app.sudoers)
-@lang.language()
-async def _logs(_, m: types.Message):
-    sent = await m.reply_text(m.lang["log_fetch"])
-    if not os.path.exists("log.txt"):
-        return await sent.edit_text(m.lang["log_not_found"])
-    await sent.edit_media(
-        media=types.InputMediaDocument(
-            media="log.txt",
-            caption=m.lang["log_sent"].format(app.name),
-        )
+@app.on_message(filters.command(["restart", "reboot"]) & filters.user(app.owner))
+async def restart_bot(_, message: types.Message):
+    """Restart the bot."""
+    await message.reply_text("Merestart...")
+   
+await asyncio.sleep(1)
+    await message.reply_text(
+        "Restart sedang berlangsung. Jangan khawatir, hanya butuh beberapa detik..."
     )
-
-
-@app.on_message(filters.command(["logger"]) & app.sudoers)
-@lang.language()
-async def _logger(_, m: types.Message):
-    if len(m.command) < 2:
-        return await m.reply_text(m.lang["logger_usage"].format(m.command[0]))
-    if m.command[1] not in ("on", "off"):
-        return await m.reply_text(m.lang["logger_usage"].format(m.command[0]))
-
-    if m.command[1] == "on":
-        await db.set_logger(True)
-        await m.reply_text(m.lang["logger_on"])
-    else:
-        await db.set_logger(False)
-        await m.reply_text(m.lang["logger_off"])
-
-
-@app.on_message(filters.command(["restart"]) & app.sudoers)
-@lang.language()
-async def _restart(_, m: types.Message):
-    sent = await m.reply_text(m.lang["restarting"])
-
-    for directory in ["cache", "downloads"]:
-        shutil.rmtree(directory, ignore_errors=True)
-
-    await sent.edit_text(m.lang["restarted"])
-    asyncio.create_task(stop())
-    await asyncio.sleep(2)
-
-    try: os.remove("log.txt")
-    except: pass
-
+    
     os.execl(sys.executable, sys.executable, "-m", "anony")
+
+
+@app.on_message(filters.command(["update"]) & filters.user(app.owner))
+async def update_bot(_, message: types.Message):
+    """Update and restart bot."""
+    sent = await message.reply_text("Checking for updates...")
+    
+    # Git pull
+    os.system("git pull")
+    
+    await sent.edit_text("Updated! Restarting...")
+    await asyncio.sleep(1)
+    
+    os.execl(sys.executable, sys.executable, "-m", "anony")
+
+
+@app.on_message(filters.command(["logs"]) & filters.user(app.owner))
+async def get_logs(_, message: types.Message):
+    """Get bot logs."""
+    
+    if not os.path.exists("log.txt"):
+        return await message.reply_text("Log file tidak ditemukan.")
+    
+    await message.reply_document("log.txt", caption="📄 **Bot Logs**")

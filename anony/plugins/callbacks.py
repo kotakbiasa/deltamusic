@@ -7,65 +7,63 @@ import re
 
 from pyrogram import enums, filters, types
 
-from anony import anon, app, db, lang, queue, tg, yt
+from anony import anon, app, db, queue, tg, yt
 from anony.helpers import admin_check, buttons, can_manage_vc
 
 
 @app.on_callback_query(filters.regex("cancel_dl") & ~app.bl_users)
-@lang.language()
 async def cancel_dl(_, query: types.CallbackQuery):
     await query.answer()
     await tg.cancel(query)
 
 
 @app.on_callback_query(filters.regex("controls") & ~app.bl_users)
-@lang.language()
 @can_manage_vc
 async def _controls(_, query: types.CallbackQuery):
     args = query.data.split()
     action, chat_id = args[1], int(args[2])
-    qaction = len(args) == 4
+    q_action = len(args) == 4
     user = query.from_user.mention
 
     if not await db.get_call(chat_id):
-        return await query.answer(query.lang["not_playing"], show_alert=True)
+        return await query.answer("Tidak ada streaming yang sedang diputar.", show_alert=True)
 
     if action == "status":
         return await query.answer()
-    await query.answer(query.lang["processing"], show_alert=True)
+    await query.answer("Memproses...", show_alert=True)
 
     if action == "pause":
         if not await db.playing(chat_id):
             return await query.answer(
-                query.lang["play_already_paused"], show_alert=True
+                "Streaming sudah dijeda!", show_alert=True
             )
         await anon.pause(chat_id)
-        if qaction:
+        if q_action:
             return await query.edit_message_reply_markup(
-                reply_markup=buttons.queue_markup(chat_id, query.lang["paused"], False)
+                reply_markup=buttons.queue_markup(chat_id, "Streaming dijeda", False)
             )
-        status = query.lang["paused"]
-        reply = query.lang["play_paused"].format(user)
+        status = "Streaming dijeda"
+        reply = f"{user} menjeda streaming."
 
     elif action == "resume":
         if await db.playing(chat_id):
-            return await query.answer(query.lang["play_not_paused"], show_alert=True)
+            return await query.answer("Streaming tidak dijeda!", show_alert=True)
         await anon.resume(chat_id)
-        if qaction:
+        if q_action:
             return await query.edit_message_reply_markup(
-                reply_markup=buttons.queue_markup(chat_id, query.lang["playing"], True)
+                reply_markup=buttons.queue_markup(chat_id, "Sedang memutar", True)
             )
-        reply = query.lang["play_resumed"].format(user)
+        reply = f"{user} melanjutkan streaming."
 
     elif action == "skip":
         await anon.play_next(chat_id)
-        status = query.lang["skipped"]
-        reply = query.lang["play_skipped"].format(user)
+        status = "Streaming dilewati"
+        reply = f"{user} melewati streaming."
 
     elif action == "force":
         pos, media = queue.check_item(chat_id, args[3])
         if not media or pos == -1:
-            return await query.edit_message_text(query.lang["play_expired"])
+            return await query.edit_message_text("Lagu ini telah kadaluarsa dari antrian.")
 
         m_id = queue.get_current(chat_id).message_id
         queue.force_add(chat_id, media, remove=pos)
@@ -77,7 +75,7 @@ async def _controls(_, query: types.CallbackQuery):
         except:
             pass
 
-        msg = await app.send_message(chat_id=chat_id, text=query.lang["play_next"])
+        msg = await app.send_message(chat_id=chat_id, text="Memutar lagu selanjutnya...")
         if not media.file_path:
             media.file_path = await yt.download(media.id, video=media.video)
         media.message_id = msg.id
@@ -87,13 +85,13 @@ async def _controls(_, query: types.CallbackQuery):
         media = queue.get_current(chat_id)
         media.user = user
         await anon.replay(chat_id)
-        status = query.lang["replayed"]
-        reply = query.lang["play_replayed"].format(user)
+        status = "Streaming diputar ulang"
+        reply = f"{user} memutar ulang streaming."
 
     elif action == "stop":
         await anon.stop(chat_id)
-        status = query.lang["stopped"]
-        reply = query.lang["play_stopped"].format(user)
+        status = "Streaming dihentikan"
+        reply = f"{user} menghentikan streaming."
 
     try:
         if action in ["skip", "replay", "stop"]:
@@ -117,7 +115,6 @@ async def _controls(_, query: types.CallbackQuery):
 
 
 @app.on_callback_query(filters.regex("help") & ~app.bl_users)
-@lang.language()
 async def _help(_, query: types.CallbackQuery):
     data = query.data.split()
     if len(data) == 1:
@@ -125,7 +122,8 @@ async def _help(_, query: types.CallbackQuery):
 
     if data[1] == "back":
         return await query.edit_message_text(
-            text=query.lang["help_menu"], reply_markup=buttons.help_markup(query.lang)
+            text="ℹ️ **Menu Bantuan**\n\nPilih kategori di bawah untuk melihat perintah yang tersedia:", 
+            reply_markup=buttons.help_markup({})
         )
     elif data[1] == "close":
         try:
@@ -134,20 +132,32 @@ async def _help(_, query: types.CallbackQuery):
         except:
             pass
 
+    # Help text mapping - hardcoded from id.json
+    help_texts = {
+        "help_0": "**Admin Commands**\n\nCommands untuk admin grup.",
+        "help_1": "**Auth Commands**\n\nCommands untuk authorization.",
+        "help_2": "**Blacklist Commands**\n\nCommands untuk blacklist.",
+        "help_3": "**Bahasa Commands**\n\nCommands untuk bahasa.",
+        "help_4": "**Ping Commands**\n\nCommands untuk ping.",
+        "help_5": "**Play Commands**\n\nCommands untuk memutar musik.",
+        "help_6": "**Queue Commands**\n\nCommands untuk queue.",
+        "help_7": "**Broadcast Commands**\n\nCommands untuk broadcast.",
+        "help_8": "**Sudo Commands**\n\nCommands untuk sudo."
+    }
+    
     await query.edit_message_text(
-        text=query.lang[f"help_{data[1]}"],
-        reply_markup=buttons.help_markup(query.lang, True),
+        text=help_texts.get(f"help_{data[1]}", "Info tidak tersedia."),
+        reply_markup=buttons.help_markup({}, True),
     )
 
 
 @app.on_callback_query(filters.regex("settings") & ~app.bl_users)
-@lang.language()
 @admin_check
 async def _settings_cb(_, query: types.CallbackQuery):
     cmd = query.data.split()
     if len(cmd) == 1:
         return await query.answer()
-    await query.answer(query.lang["processing"], show_alert=True)
+    await query.answer("Memproses...", show_alert=True)
 
     chat_id = query.message.chat.id
     _admin = await db.get_play_mode(chat_id)
@@ -162,7 +172,7 @@ async def _settings_cb(_, query: types.CallbackQuery):
         _admin = not _admin
     await query.edit_message_reply_markup(
         reply_markup=buttons.settings_markup(
-            query.lang,
+            {},
             _admin,
             _delete,
             _language,
@@ -172,14 +182,13 @@ async def _settings_cb(_, query: types.CallbackQuery):
 
 
 @app.on_callback_query(filters.regex("donate") & ~app.bl_users)
-@lang.language()
 async def _donate_cb(_, query: types.CallbackQuery):
     """Handle donate button click and show donation info."""
     from anony import config
     
     await query.answer()
     
-    donate_text = query.lang["donate_text"]
+    donate_text = "✨ **Dukung Bot Musik Tetap Hidup!** ✨\n\nSuka dengan fitur bot ini? Bantu kami agar server tetap menyala dan bot bisa terus memutar musik tanpa henti! 🚀\nDonasi kalian sangat berarti untuk membayar biaya server bulanan kami. 🔌\n\nYuk scan QR di bawah ini untuk donasi! 👇"
     
     await query.message.reply_text(
         text=donate_text,

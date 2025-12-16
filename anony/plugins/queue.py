@@ -5,54 +5,35 @@
 
 from pyrogram import filters, types
 
-from anony import app, config, db, lang, queue
-from anony.helpers import Track, buttons, thumb, utils
+from anony import app, db, queue
+from anony.helpers import buttons
 
 
-@app.on_message(filters.command(["queue", "playing"]) & filters.group & ~app.bl_users)
-@lang.language()
-async def _queue_func(_, m: types.Message):
-    if not await db.get_call(m.chat.id):
-        error_msg = await m.reply_text(m.lang["not_playing"])
-        await utils.auto_delete(error_msg)
-        return
-
-    _reply = await m.reply_text(m.lang["queue_fetching"])
-    _queue = queue.get_queue(m.chat.id)
-    _media = _queue[0]
-    _thumb = (
-        await thumb.generate(_media)
-        if isinstance(_media, Track)
-        else config.DEFAULT_THUMB
-    )
-    _text = m.lang["queue_curr"].format(
-        _media.url,
-        _media.title[:50],
-        _media.duration,
-        _media.user,
-    )
-    _queue.pop(0)
-
-    if _queue:
-        _text += "<blockquote expandable>"
-        for i, media in enumerate(_queue, start=1):
-            if i == 15:
-                break
-            _text += m.lang["queue_item"].format(
-                i + 1, media.title, media.duration
-            )
-        _text += "</blockquote>"
-
-    _playing = await db.playing(m.chat.id)
-    await _reply.edit_media(
-        media=types.InputMediaPhoto(
-            media=_thumb,
-            caption=_text,
-        ),
+@app.on_message(filters.command(["queue", "q"]) & filters.group & ~app.bl_users)
+async def _queue(_, message: types.Message):
+    if not await db.get_call(message.chat.id):
+        return await message.reply_text("Tidak ada streaming yang sedang diputar.")
+    
+    await message.reply_text("Mengambil antrian...")
+    
+    playing = await db.playing(message.chat.id)
+    items = queue.get(message.chat.id)
+    
+    if not items:
+        return await message.reply_text("Antrian kosong.")
+    
+    text = "**Antrian:**\n\n"
+    for i, item in enumerate(items[:10], 1):
+        text += f"{i}. {item.title}\n"
+    
+    if len(items) > 10:
+        text += f"\n... dan {len(items) - 10} lagi"
+    
+    await message.reply_text(
+        text,
         reply_markup=buttons.queue_markup(
-            m.chat.id,
-            m.lang["playing"] if _playing else m.lang["paused"],
-            _playing,
-        ),
+            message.chat.id,
+            "Sedang memutar" if playing else "Streaming dijeda",
+            playing
+        )
     )
-    await utils.auto_delete(_reply)

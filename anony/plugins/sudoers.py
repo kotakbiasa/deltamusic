@@ -5,53 +5,43 @@
 
 from pyrogram import filters, types
 
-from anony import app, db, lang
-from anony.helpers import utils
+from anony import app, db
+from anony.helpers import extract_user
 
 
-@app.on_message(filters.command(["addsudo", "delsudo", "rmsudo"]) & filters.user(app.owner))
-@lang.language()
-async def _sudo(_, m: types.Message):
-    user = await utils.extract_user(m)
-    if not user:
-        return await m.reply_text(m.lang["user_not_found"])
-
-    if m.command[0] == "addsudo":
-        if user.id in app.sudoers:
-            return await m.reply_text(m.lang["sudo_already"].format(user.mention))
-
-        app.sudoers.add(user.id)
-        await db.add_sudo(user.id)
-        await m.reply_text(m.lang["sudo_added"].format(user.mention))
-    else:
-        if user.id not in app.sudoers:
-            return await m.reply_text(m.lang["sudo_not"].format(user.mention))
-
-        app.sudoers.discard(user.id)
-        await db.del_sudo(user.id)
-        await m.reply_text(m.lang["sudo_removed"].format(user.mention))
+@app.on_message(filters.command(["addsudo"]) & filters.user(app.owner))
+async def add_sudo(_, message: types.Message):
+    """Add user to sudoers list."""
+    
+    if not message.reply_to_message and len(message.command) < 2:
+        return await message.reply_text("Reply ke user atau berikan user ID/username.")
+    
+    user_id, username, full_name = await extract_user(message)
+    if not user_id:
+        return await message.reply_text("Tidak dapat menemukan user tersebut.")
+    
+    if user_id in app.sudoers:
+        return await message.reply_text(f"{full_name} sudah menjadi sudoer.")
+    
+    app.sudoers.append(user_id)
+    await db.add_sudo(user_id)
+    await message.reply_text(f"Menambahkan {full_name} ke sudoers.")
 
 
-o_mention = None
-
-@app.on_message(filters.command(["listsudo", "sudolist"]))
-@lang.language()
-async def _listsudo(_, m: types.Message):
-    global o_mention
-    sent = await m.reply_text(m.lang["sudo_fetching"])
-
-    if not o_mention:
-        o_mention = (await app.get_users(app.owner)).mention
-    txt = m.lang["sudo_owner"].format(o_mention)
-    sudoers = await db.get_sudoers()
-    if sudoers:
-        txt += m.lang["sudo_users"]
-
-    for user_id in sudoers:
-        try:
-            user = (await app.get_users(user_id)).mention
-            txt += f"\n- {user}"
-        except:
-            continue
-
-    await sent.edit_text(txt)
+@app.on_message(filters.command(["rmsudo", "delsudo"]) & filters.user(app.owner))
+async def remove_sudo(_, message: types.Message):
+    """Remove user from sudoers list."""
+    
+    if not message.reply_to_message and len(message.command) < 2:
+        return await message.reply_text("Reply ke user atau berikan user ID/username.")
+    
+    user_id, username, full_name = await extract_user(message)
+    if not user_id:
+        return await message.reply_text("Tidak dapat menemukan user tersebut.")
+    
+    if user_id not in app.sudoers:
+        return await message.reply_text(f"{full_name} bukan sudoer.")
+    
+    app.sudoers.remove(user_id)
+    await db.del_sudo(user_id)
+    await message.reply_text(f"Menghapus {full_name} dari sudoers.")

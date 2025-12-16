@@ -3,94 +3,56 @@
 # This file is part of AnonXMusic
 
 
-import os
-from pathlib import Path
-
 from pyrogram import filters, types
 
-from anony import app, config, lang, yt
-from anony.helpers import thumb, utils
+from anony import app, config, yt
 
 
-@app.on_message(filters.command(["song"]) & ~app.bl_users)
-@lang.language()
-async def song_download(_, m: types.Message):
-    """Download and send audio file from YouTube."""
+@app.on_message(filters.command(["song", "mp3"]) & ~app.bl_users)
+async def song_command(_, message: types.Message):
+    """Download and send MP3 audio from YouTube."""
     
-    # Check if user provided query or URL
-    if len(m.command) < 2:
-        await m.reply_text(m.lang["song_usage"])
-        return
-    
-    query = " ".join(m.command[1:])
-    sent = await m.reply_text(m.lang["song_searching"])
-    
-    # Search or get YouTube video info
-    if yt.valid(query):
-        # Direct URL provided
-        file = await yt.search(query, sent.id, video=False)
-    else:
-        # Search query
-        file = await yt.search(query, sent.id, video=False)
-    
-    if not file:
-        await sent.edit_text(
-            m.lang["song_not_found"].format(config.SUPPORT_CHANNEL)
+    if len(message.command) < 2:
+        return await message.reply_text(
+            "<b>Penggunaan:</b>\n\n<code>/song charlie puth attention</code>\natau\n<code>/song https://youtu.be/VIDEO_ID</code>"
         )
-        await utils.auto_delete(sent)
-        return
     
-    # Download the audio
-    await sent.edit_text(m.lang["song_downloading"])
+    query = message.text.split(None, 1)[1]
+    m = await message.reply_text("Mencari lagu...")
     
-    # Check if already downloaded
-    audio_path = f"downloads/{file.id}.mp3"
-    webm_path = f"downloads/{file.id}.webm"
-    
-    if not Path(audio_path).exists() and not Path(webm_path).exists():
-        downloaded_file = await yt.download(file.id, video=False)
-        if not downloaded_file:
-            await sent.edit_text(
-                m.lang["song_not_found"].format(config.SUPPORT_CHANNEL)
-            )
-            await utils.auto_delete(sent)
-            return
-        audio_path = downloaded_file
-    elif Path(webm_path).exists():
-        audio_path = webm_path
-    
-    # Check file size (50MB = 52428800 bytes)
-    file_size = os.path.getsize(audio_path)
-    if file_size > 52428800:  # 50MB limit for Telegram audio
-        await sent.edit_text(m.lang["song_size_limit"])
-        await utils.auto_delete(sent)
-        return
-    
-    # Download thumbnail for audio metadata
-    thumb_path = None
-    if file.thumbnail:
+    try:
+        search = await yt.search(query)
+        if not search:
+            return await m.edit_text("Gagal menemukan atau mengunduh lagu.\n\nJika masalah berlanjut, laporkan ke <a href={}>chat dukungan</a>.".format(config.SUPPORT_CHANNEL))
+        
+        track = search[0]
+        await m.edit_text("Mengunduh audio...")
+        
+        file_path = await yt.download(track.id, video=False)
+        if not file_path:
+            return await m.edit_text("Gagal menemukan atau mengunduh lagu.\n\nJika masalah berlanjut, laporkan ke <a href={}>chat dukungan</a>.".format(config.SUPPORT_CHANNEL))
+        
+        # Check file size
+        import os
+        file_size = os.path.getsize(file_path)
+        if file_size > 50 * 1024 * 1024:  # 50MB limit
+            os.remove(file_path)
+            return await m.edit_text("File audio terlalu besar (maksimum 50MB).\n\nCoba lagu dengan durasi lebih pendek.")
+        
+        await message.reply_audio(
+            audio=file_path,
+            title=track.title,
+            performer=track.title,
+            duration=track.duration,
+            thumb=track.thumb
+        )
+        await m.delete()
+        
+        # Cleanup
         try:
-            thumb_path = f"cache/{file.id}_thumb.jpg"
-            await thumb.save_thumb(thumb_path, file.thumbnail)
+            os.remove(file_path)
         except:
             pass
-    
-    # Send audio file
-    await m.reply_audio(
-        audio=audio_path,
-        title=file.title,
-        performer=file.channel_name or "Unknown Artist",
-        duration=file.duration_sec,
-        thumb=thumb_path,
-        caption=f"🎵 **{file.title}**\n👤 {file.channel_name}\n⏱️ {file.duration}\n\n📥 Diunduh oleh {m.from_user.mention}",
-    )
-    
-    # Delete the status message
-    await sent.delete()
-    
-    # Clean up thumbnail
-    if thumb_path and Path(thumb_path).exists():
-        try:
-            os.remove(thumb_path)
-        except:
-            pass
+            
+    except Exception as e:
+        await m.edit_text(f"Error: {str(e)}")

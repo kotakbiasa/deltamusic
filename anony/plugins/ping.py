@@ -3,33 +3,22 @@
 # This file is part of AnonXMusic
 
 
-import time
-import psutil
+import asyncio
 
 from pyrogram import filters, types
-from anony import app, anon, boot, config, lang
-from anony.helpers import buttons
+
+from anony import anon, app, boot, config
 
 
-@app.on_message(filters.command(["alive", "ping"]) & ~app.bl_users)
-@lang.language()
-async def _ping(_, m: types.Message):
-    start = time.time()
-    sent = await m.reply_text(m.lang["pinging"])
-    get_time = lambda s: (lambda r: (f"{r[-1]}, " if r[-1][:-4] != "0" else "") + ":".join(reversed(r[:-1])))([f"{v}{u}" for v, u in zip([s%60, (s//60)%60, (s//3600)%24, s//86400], ["s", "m", "h", "days"])])
-    uptime = get_time(int(time.time() - boot))
-    latency = round((time.time() - start) * 1000, 2)
-    await sent.edit_media(
-        media=types.InputMediaPhoto(
-            media=config.PING_IMG,
-            caption=m.lang["ping_pong"].format(
-                latency,
-                uptime,
-                psutil.cpu_percent(interval=0),
-                psutil.virtual_memory().percent,
-                psutil.disk_usage("/").percent,
-                await anon.ping(),
-            )
-        ),
-        reply_markup=buttons.ping_markup(m.lang["support"]),
+@app.on_message(filters.command(["ping"]) & filters.group & ~app.bl_users)
+async def ping(_, message: types.Message):
+    start = asyncio.get_event_loop().time()
+    m = await message.reply_photo(
+        photo=config.PING_IMG,
+        caption="🏓 Pinging...",
+    )
+    end = asyncio.get_event_loop().time()
+    uptime = int(end - boot)
+    await m.edit_caption(
+        f"🏓 **Pong!**\n\n💬 **Latency:** `{(end - start) * 1000:.3f}ms`\n📡 **Ping:** `{await anon.ping()}ms`\n⏱️ **Uptime:** `{uptime // 3600}h {(uptime % 3600) // 60}m`"
     )

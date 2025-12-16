@@ -5,35 +5,36 @@
 
 from pyrogram import filters, types
 
-from anony import app, db, lang
+from anony import app, db
 
 
-@app.on_message(filters.command(["blacklist", "unblacklist", "whitelist"]) & app.sudoers)
-@lang.language()
-async def _blacklist(_, m: types.Message):
-    if len(m.command) < 2:
-        return await m.reply_text(m.lang["bl_usage"].format(m.command[0]))
-
+@app.on_message(filters.command(["blacklist", "unblacklist"]) & ~app.bl_users)
+@app.only_sudoers
+async def blacklist_cmd(_, message: types.Message):
+    """Blacklist/unblacklist a user or chat."""
+    
+    if len(message.command) < 2:
+        return await message.reply_text(
+            "<b>Penggunaan:</b>\n\n/blacklist [chat_id|user_id]"
+        )
+    
     try:
-        chat_id = m.command[1]
-        if not str(chat_id).startswith("@"):
-            chat_id = int(chat_id)
-        else:
-            chat_id = (await app.get_chat(chat_id)).id
-    except:
-        return await m.reply_text(m.lang["bl_invalid"])
-
-    if m.command[0] == "blacklist":
-        if chat_id in db.blacklisted or chat_id in app.bl_users:
-            return await m.reply_text(m.lang["bl_already"])
-        if not str(chat_id).startswith("-100"):
-            app.bl_users.add(chat_id)
-        await db.add_blacklist(chat_id)
-        await m.reply_text(m.lang["bl_added"])
+        target_id = int(message.command[1])
+    except ValueError:
+        return await message.reply_text("Hanya chat ID dan user ID yang didukung.")
+    
+    is_blacklist = message.command[0] == "blacklist"
+    
+    if is_blacklist:
+        if target_id in app.bl_users or target_id in db.blacklisted:
+            return await message.reply_text("Chat ini sudah ada di daftar hitam.")
+        await db.add_blacklist(target_id)
+        app.bl_users.append(target_id)
+        await message.reply_text("Chat ini telah ditambahkan ke daftar hitam.")
     else:
-        if chat_id not in db.blacklisted and chat_id not in app.bl_users:
-            return await m.reply_text(m.lang["bl_not"])
-        if not str(chat_id).startswith("-100"):
-            app.bl_users.discard(chat_id)
-        await db.del_blacklist(chat_id)
-        await m.reply_text(m.lang["bl_removed"])
+        if target_id not in app.bl_users and target_id not in db.blacklisted:
+            return await message.reply_text("Chat ini tidak ada di daftar hitam.")
+        await db.del_blacklist(target_id)
+        if target_id in app.bl_users:
+            app.bl_users.remove(target_id)
+        await message.reply_text("Chat ini telah dihapus dari daftar hitam.")
