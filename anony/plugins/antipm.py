@@ -74,6 +74,15 @@ async def pmpermit_handler(client, message: Message):
     if user_id in APPROVED_USERS:
         return
     
+    # Check if user is already blocked - SILENTLY IGNORE
+    if await db.is_pm_blocked(user_id):
+        # Don't reply, just block silently
+        try:
+            await client.block_user(user_id)
+        except:
+            pass
+        return
+    
     # Increment warning count
     if user_id not in PM_WARNS:
         PM_WARNS[user_id] = 0
