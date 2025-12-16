@@ -4,6 +4,7 @@
 # PMPermit for Assistant Accounts
 
 
+import asyncio
 from pyrogram import filters
 from pyrogram.types import Message
 
@@ -120,7 +121,20 @@ async def pmpermit_handler(client, message: Message):
     # Send warning
     warn_msg = CUSTOM_PM_WARN if CUSTOM_PM_WARN else DEFAULT_WARN_MSG
     warn_msg = warn_msg.format(warn=warn_count, total=config.PM_WARN_COUNT)
-    await message.reply_text(warn_msg)
+    sent_warn = await message.reply_text(warn_msg)
+    
+    # Auto-delete sender's message immediately
+    try:
+        await message.delete()
+    except:
+        pass
+        
+    # Wait 10 seconds then delete warning
+    await asyncio.sleep(10)
+    try:
+        await sent_warn.delete()
+    except:
+        pass
 
 
 # Approve command (for owner only)
