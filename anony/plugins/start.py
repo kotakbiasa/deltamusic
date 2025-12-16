@@ -73,9 +73,6 @@ async def settings(_, message: types.Message):
 @app.on_message(filters.new_chat_members, group=7)
 @lang.language()
 async def _new_member(_, message: types.Message):
-    if message.chat.type != enums.ChatType.SUPERGROUP:
-        return await message.chat.leave()
-
     await asyncio.sleep(3)
     for member in message.new_chat_members:
         if member.id == app.id:
