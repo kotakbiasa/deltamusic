@@ -181,22 +181,20 @@ async def _donate_cb(_, query: types.CallbackQuery):
     
     donate_text = query.lang["donate_text"]
     
+    qr_path = "cache/donate_qr.png"
+    from anony.helpers import thumb
+    import os
+    
     try:
         # Download QR code locally first
-        qr_path = "cache/donate_qr.png"
-        from anony.helpers import thumb
-        import os
-        
         await thumb.save_thumb(qr_path, config.DONATE_QR_IMAGE)
         
-        await query.message.reply_photo(
-            photo=qr_path,
-            caption=donate_text,
-        )
-        
-        # Clean up
-        if os.path.exists(qr_path):
-            os.remove(qr_path)
+        # Read file as bytes to prevent deletion issues
+        with open(qr_path, "rb") as photo_file:
+            await query.message.reply_photo(
+                photo=photo_file,
+                caption=donate_text,
+            )
             
     except Exception as e:
         # Show error if QR image fails
@@ -204,3 +202,10 @@ async def _donate_cb(_, query: types.CallbackQuery):
             f"❌ Gagal mengirim QR code.\nError: {e}",
             show_alert=True
         )
+    finally:
+        # Clean up after sending
+        if os.path.exists(qr_path):
+            try:
+                os.remove(qr_path)
+            except:
+                pass

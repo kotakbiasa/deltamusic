@@ -14,26 +14,31 @@ async def donate_command(_, message: types.Message):
     """Show donate information with QR code link."""
     donate_text = message.lang["donate_text"]
     
+    qr_path = "cache/donate_qr.png"
+    from anony.helpers import thumb
+    import os
+    
     try:
         # Download QR code locally first
-        qr_path = "cache/donate_qr.png"
-        from anony.helpers import thumb
-        import os
-        
         await thumb.save_thumb(qr_path, config.DONATE_QR_IMAGE)
         
-        await message.reply_photo(
-            photo=qr_path,
-            caption=donate_text,
-            quote=True,
-        )
-        
-        # Clean up
-        if os.path.exists(qr_path):
-            os.remove(qr_path)
+        # Read file as bytes to prevent deletion issues
+        with open(qr_path, "rb") as photo_file:
+            await message.reply_photo(
+                photo=photo_file,
+                caption=donate_text,
+                quote=True,
+            )
             
     except Exception as e:
         await message.reply_text(
             f"❌ Gagal mengirim QR code.\nError: `{e}`",
             quote=True,
         )
+    finally:
+        # Clean up after sending
+        if os.path.exists(qr_path):
+            try:
+                os.remove(qr_path)
+            except:
+                pass
