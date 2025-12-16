@@ -24,9 +24,9 @@ class Config:
         self.SESSION3 = getenv("SESSION3", None)
 
         self.SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/FallenAssociation")
-        self.SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/DevilsHeavenMF")
+        self.DONATE_LINK = getenv("DONATE_LINK", "https://example.com/donate")
 
-        self.AUTO_END: bool = getenv("AUTO_END", True)
+        self.AUTO_END: bool = getenv("AUTO_END", False)
         self.AUTO_LEAVE: bool = getenv("AUTO_LEAVE", False)
         self.AUTO_DELETE_TIME: int = int(getenv("AUTO_DELETE_TIME", 15))
         self.ANTI_PM_ENABLED: bool = getenv("ANTI_PM_ENABLED", True)

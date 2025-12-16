@@ -58,10 +58,21 @@ class Inline:
             ]
         else:
             # Language button removed - Indonesian only
-            cbs = ["admins", "auth", "blist", "ping", "play", "queue", "stats", "sudo"]
+            # Manual mapping to skip help_3 (Bahasa)
+            help_map = [
+                ("admins", "help_0"),
+                ("auth", "help_1"),
+                ("blist", "help_2"),
+                # help_3 (Bahasa) - SKIPPED
+                ("ping", "help_4"),
+                ("play", "help_5"),
+                ("queue", "help_6"),
+                ("stats", "help_7"),
+                ("sudo", "help_8"),
+            ]
             buttons = [
-                self.ikb(text=_lang[f"help_{i}"], callback_data=f"help {cb}")
-                for i, cb in enumerate(cbs)
+                self.ikb(text=_lang[help_key], callback_data=f"help {cb}")
+                for cb, help_key in help_map
             ]
             rows = [buttons[i : i + 3] for i in range(0, len(buttons), 3)]
 
@@ -81,7 +92,7 @@ class Inline:
         return self.ikm(rows)
 
     def ping_markup(self, text: str) -> types.InlineKeyboardMarkup:
-        return self.ikm([[self.ikb(text=text, url=config.SUPPORT_CHAT)]])
+        return self.ikm([[self.ikb(text=text, url=config.SUPPORT_CHANNEL)]])
 
     def play_queued(
         self, chat_id: int, item_id: str, _text: str
@@ -138,20 +149,11 @@ class Inline:
                 )
             ],
             [self.ikb(text=lang["help"], callback_data="help")],
-            [
-                self.ikb(text=lang["support"], url=config.SUPPORT_CHAT),
-                self.ikb(text=lang["channel"], url=config.SUPPORT_CHANNEL),
-            ],
+            [self.ikb(text=lang["channel"], url=config.SUPPORT_CHANNEL)],
         ]
         if private:
-            rows += [
-                [
-                    self.ikb(
-                        text=lang["source"],
-                        url="https://github.com/AnonymousX1025/AnonXMusic",
-                    )
-                ]
-            ]
+            # Source button removed
+            pass
         else:
             # Language button removed - Indonesian only
             pass

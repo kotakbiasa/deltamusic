@@ -61,7 +61,7 @@ async def play_hndlr(
 
         if not file:
             await sent.edit_text(
-                m.lang["play_not_found"].format(config.SUPPORT_CHAT)
+                m.lang["play_not_found"].format(config.SUPPORT_CHANNEL)
             )
             await utils.auto_delete(sent)
             return

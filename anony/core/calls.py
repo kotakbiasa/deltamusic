@@ -57,7 +57,7 @@ class TgCall(PyTgCalls):
         )
 
         if not media.file_path:
-            return await message.edit_text(_lang["error_no_file"].format(config.SUPPORT_CHAT))
+            return await message.edit_text(_lang["error_no_file"].format(config.SUPPORT_CHANNEL))
 
         stream = types.MediaStream(
             media_path=media.file_path,
@@ -103,7 +103,7 @@ class TgCall(PyTgCalls):
                         reply_markup=keyboard,
                     )).id
         except FileNotFoundError:
-            await message.edit_text(_lang["error_no_file"].format(config.SUPPORT_CHAT))
+            await message.edit_text(_lang["error_no_file"].format(config.SUPPORT_CHANNEL))
             await self.play_next(chat_id)
         except exceptions.NoActiveGroupCall:
             await self.stop(chat_id)
@@ -152,7 +152,7 @@ class TgCall(PyTgCalls):
             if not media.file_path:
                 await self.stop(chat_id)
                 return await msg.edit_text(
-                    _lang["error_no_file"].format(config.SUPPORT_CHAT)
+                    _lang["error_no_file"].format(config.SUPPORT_CHANNEL)
                 )
 
         media.message_id = msg.id
