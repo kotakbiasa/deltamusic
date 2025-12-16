@@ -1,7 +1,7 @@
 # Copyright (c) 2025 AnonymousX1025
 # Licensed under the MIT License.
 # This file is part of AnonXMusic
-# PMPermit for Assistant Accounts
+# Auto Clear PM (No Block) for Assistant Accounts
 
 
 import asyncio
@@ -13,50 +13,39 @@ from anony import config, db, userbot
 
 # Store approved users (owner always approved)
 APPROVED_USERS = set()
-PM_WARNS = {}
 
 # Custom messages (loaded from database)
 CUSTOM_PM_WARN = None
-CUSTOM_PM_BLOCK = None
 MESSAGES_LOADED = False
 
-# Default messages
+# Default message
 DEFAULT_WARN_MSG = (
-    "⚠️ **Peringatan {warn}/{total}**\n"
-    "⚠️ **Warning {warn}/{total}**\n\n"
+    "⚠️ **MOHON JANGAN SPAM!**\n\n"
     "**🇮🇩 Bahasa Indonesia:**\n"
-    "Ini adalah akun assistant bot musik. Mohon jangan kirim pesan ke sini.\n"
-    "Gunakan bot utama kami di grup untuk memutar musik.\n\n"
+    "Jangan kirim pesan ke akun assistant ini.\n"
+    "Pesan Anda akan terhapus otomatis dalam 3 detik.\n\n"
     "**🇬🇧 English:**\n"
-    "This is a music bot assistant account. Please do not send messages here.\n"
-    "Use our main bot in groups to play music."
-)
-
-DEFAULT_BLOCK_MSG = (
-    "❌ **Anda telah diblokir!**\n"
-    "❌ **You have been blocked!**\n\n"
-    "Anda telah melebihi batas peringatan karena spam ke akun assistant ini.\n"
-    "You exceeded the warning limit for spamming this assistant account."
+    "Do not send messages to this assistant account.\n"
+    "Your message will be auto-deleted in 3 seconds."
 )
 
 
 async def load_custom_messages():
     """Load custom PM messages from database."""
-    global CUSTOM_PM_WARN, CUSTOM_PM_BLOCK, MESSAGES_LOADED
+    global CUSTOM_PM_WARN, MESSAGES_LOADED
     
     if not MESSAGES_LOADED:
         messages = await db.get_pm_messages()
         CUSTOM_PM_WARN = messages.get("warn")
-        CUSTOM_PM_BLOCK = messages.get("block")
         MESSAGES_LOADED = True
 
 
-# PMPermit for Assistant Accounts
+# Auto Clear PM Handler
 @userbot.one.on_message(filters.private & filters.incoming, group=1)
 @userbot.two.on_message(filters.private & filters.incoming, group=1)
 @userbot.three.on_message(filters.private & filters.incoming, group=1)
-async def pmpermit_handler(client, message: Message):
-    """PMPermit protection for assistant accounts."""
+async def pm_auto_clear(client, message: Message):
+    """Auto clear PM messages after 3 seconds without blocking."""
     
     # Load custom messages from database (once)
     await load_custom_messages()
@@ -75,64 +64,25 @@ async def pmpermit_handler(client, message: Message):
     if user_id in APPROVED_USERS:
         return
     
-    # Check if user is already blocked - SILENTLY IGNORE
-    if await db.is_pm_blocked(user_id):
-        # Ensure they are hard blocked in Telegram
-        try:
-            from pyrogram.raw import functions
-            await client.invoke(
-                functions.contacts.Block(
-                    id=await client.resolve_peer(user_id)
-                )
-            )
-        except Exception as e:
-            print(f"[AntiPM] Failed to re-block {user_id}: {e}")
-        return
-    
-    # Increment warning count
-    if user_id not in PM_WARNS:
-        PM_WARNS[user_id] = 0
-    
-    PM_WARNS[user_id] += 1
-    warn_count = PM_WARNS[user_id]
-    
-    # Block if exceeded
-    if warn_count > config.PM_WARN_COUNT:
-        block_msg = CUSTOM_PM_BLOCK if CUSTOM_PM_BLOCK else DEFAULT_BLOCK_MSG
-        try:
-            await message.reply_text(block_msg)
-        except:
-            pass
-        
-        # Hard block the user via Telegram (Raw API)
-        try:
-            from pyrogram.raw import functions
-            print(f"[AntiPM] Blocking user {user_id}...")
-            await client.invoke(
-                functions.contacts.Block(
-                    id=await client.resolve_peer(user_id)
-                )
-            )
-            print(f"[AntiPM] User {user_id} successfully blocked.")
-        except Exception as e:
-            print(f"[AntiPM] FAILED to block user {user_id}: {e}")
-        return
-    
     # Send warning
     warn_msg = CUSTOM_PM_WARN if CUSTOM_PM_WARN else DEFAULT_WARN_MSG
-    warn_msg = warn_msg.format(warn=warn_count, total=config.PM_WARN_COUNT)
-    sent_warn = await message.reply_text(warn_msg)
     
-    # Auto-delete sender's message immediately
     try:
-        await message.delete()
+        sent_warn = await message.reply_text(warn_msg)
+    except:
+        return
+        
+    # Wait 3 seconds
+    await asyncio.sleep(3)
+    
+    # Delete BOTH messages (User's + Warning)
+    try:
+        await message.delete()  # Delete user message
     except:
         pass
         
-    # Wait 10 seconds then delete warning
-    await asyncio.sleep(10)
     try:
-        await sent_warn.delete()
+        await sent_warn.delete() # Delete warning message
     except:
         pass
 
@@ -142,12 +92,11 @@ async def pmpermit_handler(client, message: Message):
 @userbot.two.on_message(filters.command("approve", prefixes=".") & filters.me)
 @userbot.three.on_message(filters.command("approve", prefixes=".") & filters.me)
 async def approve_pm(client, message: Message):
-    """Approve a user to PM."""
+    """Approve a user to PM (disable auto clear for them)."""
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
         APPROVED_USERS.add(user_id)
-        PM_WARNS.pop(user_id, None)
-        await message.reply_text(f"✅ Approved {message.reply_to_message.from_user.mention}")
+        await message.reply_text(f"✅ Approved {message.reply_to_message.from_user.mention} - Auto clear disabled.")
     else:
         await message.reply_text("Reply to a user's message to approve them.")
 
@@ -157,12 +106,11 @@ async def approve_pm(client, message: Message):
 @userbot.two.on_message(filters.command("disapprove", prefixes=".") & filters.me)
 @userbot.three.on_message(filters.command("disapprove", prefixes=".") & filters.me)
 async def disapprove_pm(client, message: Message):
-    """Disapprove a user from PM."""
+    """Disapprove a user (enable auto clear)."""
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
         APPROVED_USERS.discard(user_id)
-        PM_WARNS[user_id] = 0
-        await message.reply_text(f"❌ Disapproved {message.reply_to_message.from_user.mention}")
+        await message.reply_text(f"❌ Disapproved {message.reply_to_message.from_user.mention} - Auto clear enabled.")
     else:
         await message.reply_text("Reply to a user's message to disapprove them.")
 
@@ -172,44 +120,21 @@ async def disapprove_pm(client, message: Message):
 @userbot.two.on_message(filters.command("setpmwarn", prefixes=".") & filters.me)
 @userbot.three.on_message(filters.command("setpmwarn", prefixes=".") & filters.me)
 async def set_pm_warn(client, message: Message):
-    """Set custom PM warning message. Use {warn} and {total} as placeholders."""
+    """Set custom PM warning message."""
     global CUSTOM_PM_WARN
     
     if len(message.command) < 2:
         await message.reply_text(
             "**Usage:** `.setpmwarn <message>`\n\n"
-            "Use `{warn}` for warning count and `{total}` for total warnings.\n\n"
             "**Example:**\n"
-            "`.setpmwarn ⚠️ Warning {warn}/{total}\\n\\nDon't spam this account!`"
+            "`.setpmwarn ⚠️ Don't spam! Auto-delete in 3s.`"
         )
         return
     
     custom_msg = message.text.split(maxsplit=1)[1]
     CUSTOM_PM_WARN = custom_msg
     await db.set_pm_warn_msg(custom_msg)
-    await message.reply_text(f"✅ Custom warning message set and saved!\n\n**Preview:**\n{custom_msg.format(warn=1, total=config.PM_WARN_COUNT)}")
-
-
-# Set custom block message
-@userbot.one.on_message(filters.command("setpmblock", prefixes=".") & filters.me)
-@userbot.two.on_message(filters.command("setpmblock", prefixes=".") & filters.me)
-@userbot.three.on_message(filters.command("setpmblock", prefixes=".") & filters.me)
-async def set_pm_block(client, message: Message):
-    """Set custom PM block message."""
-    global CUSTOM_PM_BLOCK
-    
-    if len(message.command) < 2:
-        await message.reply_text(
-            "**Usage:** `.setpmblock <message>`\n\n"
-            "**Example:**\n"
-            "`.setpmblock ❌ You are blocked!\\n\\nStop spamming.`"
-        )
-        return
-    
-    custom_msg = message.text.split(maxsplit=1)[1]
-    CUSTOM_PM_BLOCK = custom_msg
-    await db.set_pm_block_msg(custom_msg)
-    await message.reply_text(f"✅ Custom block message set and saved!\n\n**Preview:**\n{custom_msg}")
+    await message.reply_text(f"✅ Custom warning set!\n\n**Preview:**\n{custom_msg}")
 
 
 # Reset to default messages
@@ -218,68 +143,33 @@ async def set_pm_block(client, message: Message):
 @userbot.three.on_message(filters.command("resetpm", prefixes=".") & filters.me)
 async def reset_pm_messages(client, message: Message):
     """Reset PM messages to default."""
-    global CUSTOM_PM_WARN, CUSTOM_PM_BLOCK
+    global CUSTOM_PM_WARN
     
     CUSTOM_PM_WARN = None
-    CUSTOM_PM_BLOCK = None
     await db.clear_pm_messages()
-    await message.reply_text("✅ PM messages reset to default and cleared from database!")
-
-
-# Show current PM messages
-@userbot.one.on_message(filters.command("showpm", prefixes=".") & filters.me)
-@userbot.two.on_message(filters.command("showpm", prefixes=".") & filters.me)
-@userbot.three.on_message(filters.command("showpm", prefixes=".") & filters.me)
-async def show_pm_messages(client, message: Message):
-    """Show current PM messages."""
-    warn_msg = CUSTOM_PM_WARN if CUSTOM_PM_WARN else DEFAULT_WARN_MSG
-    block_msg = CUSTOM_PM_BLOCK if CUSTOM_PM_BLOCK else DEFAULT_BLOCK_MSG
-    
-    status = "Custom" if CUSTOM_PM_WARN else "Default"
-    
-    await message.reply_text(
-        f"**Current PM Messages ({status}):**\n\n"
-        f"**Warning Message:**\n{warn_msg.format(warn=1, total=config.PM_WARN_COUNT)}\n\n"
-        f"**Block Message:**\n{block_msg}"
-    )
+    await message.reply_text("✅ PM message reset to default!")
 
 
 # PMPermit help command
 @userbot.one.on_message(filters.command("pmhelp", prefixes=".") & filters.me)
 @userbot.two.on_message(filters.command("pmhelp", prefixes=".") & filters.me)
 @userbot.three.on_message(filters.command("pmhelp", prefixes=".") & filters.me)
-async def pm_help(client, message: Message):
-    """Show PMPermit help and available commands."""
+async def pm_auto_help(client, message: Message):
+    """Show Auto Clear PM help."""
     help_text = (
-        "**🛡️ PMPermit - Help & Commands**\n\n"
+        "**🧹 Auto Clear PM (No Block)**\n\n"
         
-        "**📋 User Management:**\n"
-        "• `.approve` - Approve user (reply to their message)\n"
-        "• `.disapprove` - Remove approval (reply to their message)\n\n"
+        "**Cara Kerja:**\n"
+        "• User PM → Bot Warning\n"
+        "• Tunggu 3 Detik\n"
+        "• Hapus pesan User + Warning\n"
+        "• TIDAK ADA BLOKIR\n\n"
         
-        "**✏️ Custom Messages:**\n"
-        "• `.setpmwarn <message>` - Set custom warning message\n"
-        "  → Use `{warn}` and `{total}` as placeholders\n"
-        "  → Example: `.setpmwarn 🚫 Warning {warn}/{total}\\n\\nDon't spam!`\n\n"
-        
-        "• `.setpmblock <message>` - Set custom block message\n"
-        "  → Example: `.setpmblock ❌ Blocked!\\n\\nSpam detected.`\n\n"
-        
-        "**📊 View & Reset:**\n"
-        "• `.showpm` - Show current messages (custom or default)\n"
-        "• `.resetpm` - Reset to default messages\n\n"
-        
-        "**ℹ️ Info:**\n"
-        "• Default warnings: 3 (configurable in .env)\n"
-        "• Auto-block after limit exceeded\n"
-        "• Owner always bypassed\n"
-        "• Messages support Markdown: **bold**, *italic*, emoji\n\n"
-        
-        "**💡 Tips:**\n"
-        "• All commands use `.` prefix and work in PM only\n"
-        "• Use `\\n` for new line in custom messages\n"
-        "• Custom messages saved until bot restart\n"
-        "• `.pmhelp` - Show this help anytime"
+        "**Commands:**\n"
+        "• `.approve` - White list user (chat gak dihapus)\n"
+        "• `.disapprove` - Kembalikan ke auto delete\n"
+        "• `.setpmwarn` - Custom pesan warning\n"
+        "• `.resetpm` - Reset pesan default"
     )
     
     await message.reply_text(help_text)
