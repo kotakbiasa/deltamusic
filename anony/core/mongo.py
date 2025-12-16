@@ -49,6 +49,9 @@ class MongoDB:
         self.pm_messages = {}
         self.pm_messagesdb = self.db.pm_messages
 
+        self.statsdb = self.db.stats
+        self.queriesdb = self.db.queries
+
     async def connect(self) -> None:
         """Check if we can connect to the database.
 
@@ -367,6 +370,102 @@ class MongoDB:
         """Clear custom PM messages (reset to default)."""
         self.pm_messages = {"warn": None, "block": None}
         await self.pm_messagesdb.delete_one({"_id": "custom_messages"})
+
+    # STATS TRACKING METHODS
+    async def add_stats(self, track_id: str, title: str, duration: str, user_id: int, chat_id: int) -> None:
+        """Add or update play statistics."""
+        await self.statsdb.update_one(
+            {"_id": track_id},
+            {
+                "$set": {"title": title, "duration": duration},
+                "$inc": {
+                    "count": 1,
+                    f"users.{user_id}": 1,
+                    f"chats.{chat_id}": 1
+                }
+            },
+            upsert=True
+        )
+
+    async def get_global_tops(self, limit: int = 10) -> dict:
+        """Get top tracks globally."""
+        cursor = self.statsdb.find().sort("count", -1).limit(limit)
+        results = {}
+        async for doc in cursor:
+            results[doc["_id"]] = {
+                "spot": doc.get("count", 0),
+                "title": doc.get("title", "Unknown"),
+                "duration": doc.get("duration", "0:00")
+            }
+        return results
+
+    async def get_top_users(self, limit: int = 10) -> dict:
+        """Get most active users globally."""
+        pipeline = [
+            {"$project": {"users": {"$objectToArray": "$users"}}},
+            {"$unwind": "$users"},
+            {"$group": {"_id": "$users.k", "count": {"$sum": "$users.v"}}},
+            {"$sort": {"count": -1}},
+            {"$limit": limit}
+        ]
+        cursor = self.statsdb.aggregate(pipeline)
+        results = {}
+        async for doc in cursor:
+            try:
+                user_id = int(doc["_id"])
+                results[user_id] = doc["count"]
+            except (ValueError, TypeError):
+                continue
+        return results
+
+    async def get_top_chats(self, limit: int = 10) -> dict:
+        """Get most active groups globally."""
+        pipeline = [
+            {"$project": {"chats": {"$objectToArray": "$chats"}}},
+            {"$unwind": "$chats"},
+            {"$group": {"_id": "$chats.k", "count": {"$sum": "$chats.v"}}},
+            {"$sort": {"count": -1}},
+            {"$limit": limit}
+        ]
+        cursor = self.statsdb.aggregate(pipeline)
+        results = {}
+        async for doc in cursor:
+            try:
+                chat_id = int(doc["_id"])
+                results[chat_id] = doc["count"]
+            except (ValueError, TypeError):
+                continue
+        return results
+
+    async def get_group_stats(self, chat_id: int, limit: int = 10) -> dict:
+        """Get top tracks for a specific group."""
+        cursor = self.statsdb.find(
+            {f"chats.{chat_id}": {"$exists": True}}
+        ).sort(f"chats.{chat_id}", -1).limit(limit)
+        results = {}
+        async for doc in cursor:
+            chats = doc.get("chats", {})
+            count = chats.get(str(chat_id), 0)
+            if count > 0:
+                results[doc["_id"]] = {
+                    "spot": count,
+                    "title": doc.get("title", "Unknown"),
+                    "duration": doc.get("duration", "0:00")
+                }
+        return results
+
+    async def increment_queries(self) -> None:
+        """Increment total queries counter."""
+        await self.queriesdb.update_one(
+            {"_id": "total_queries"},
+            {"$inc": {"count": 1}},
+            upsert=True
+        )
+
+    async def get_queries(self) -> int:
+        """Get total queries count."""
+        doc = await self.queriesdb.find_one({"_id": "total_queries"})
+        return doc.get("count", 0) if doc else 0
 
 
     async def migrate_coll(self) -> None:

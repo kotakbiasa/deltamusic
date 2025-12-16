@@ -80,6 +80,20 @@ class TgCall(PyTgCalls):
             if not seek_time:
                 media.time = 1
                 await db.add_call(chat_id)
+                
+                # Track stats
+                try:
+                    await db.add_stats(
+                        track_id=media.id,
+                        title=media.title,
+                        duration=media.duration,
+                        user_id=message.from_user.id,
+                        chat_id=chat_id
+                    )
+                    await db.increment_queries()
+                except:
+                    pass
+                
                 text = _lang["play_media"].format(
                     media.url,
                     media.title,

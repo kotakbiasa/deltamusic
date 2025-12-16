@@ -16,6 +16,7 @@ async def donate_command(_, message: types.Message):
     
     await message.reply_text(
         text=donate_text,
+        parse_mode="Markdown",
         reply_markup=types.InlineKeyboardMarkup(
             [[types.InlineKeyboardButton(text="🎁 Dukung Kami", url=config.DONATE_QR_IMAGE)]]
         ),

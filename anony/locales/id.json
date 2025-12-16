@@ -158,5 +158,14 @@
     "song_downloading": "Mengunduh audio...",
     "song_not_found": "Gagal menemukan atau mengunduh lagu.\n\nJika masalah berlanjut, laporkan ke <a href={0}>chat dukungan</a>.",
     "song_size_limit": "File audio terlalu besar (maksimum 50MB).\n\nCoba lagu dengan durasi lebih pendek.",
-    "donate_text": "✨ **Dukung Bot Musik Tetap Hidup!** ✨\n\nSuka dengan fitur bot ini? Bantu kami agar server tetap menyala dan bot bisa terus memutar musik tanpa henti! 🚀\nDonasi kalian sangat berarti untuk membayar biaya server bulanan kami. 🔌\n\nYuk scan QR di bawah ini untuk donasi! 👇"
+    "donate_text": "✨ **Dukung Bot Musik Tetap Hidup!** ✨\n\nSuka dengan fitur bot ini? Bantu kami agar server tetap menyala dan bot bisa terus memutar musik tanpa henti! 🚀\nDonasi kalian sangat berarti untuk membayar biaya server bulanan kami. 🔌\n\nYuk scan QR di bawah ini untuk donasi! 👇",
+    "gstats_1": "Mengambil statistik global...",
+    "gstats_2": "Belum ada data statistik.",
+    "gstats_3": "📊 **Top 10 {}**",
+    "gstats_4": "🎵 **Statistik Global**\n\nTotal Queries: {}\nBot: {}\nTotal Tracks: {}\nTotal Plays: {}\n\n**Top {} Most Played:**\n\n{}",
+    "gstats_5": "📈 **Top {} Grup Teraktif di {}:**\n\n{}",
+    "gstats_6": "👥 **Top {} User Teraktif di {}:**\n\n{}",
+    "gstats_7": "📊 **Statistik Grup**\n\nTotal Tracks: {}\nTotal Plays: {}\n\n**Top {} Lagu:**\n\n{}",
+    "gstats_8": "Mengambil statistik bot...",
+    "gstats_11": "🎵 **Selamat Datang di Statistik {}!**\n\nPilih kategori statistik yang ingin dilihat:"
 }

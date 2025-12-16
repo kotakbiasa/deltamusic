@@ -46,6 +46,39 @@ class Inline:
             )
         return self.ikm(keyboard)
 
+    def stats_buttons(self, _lang: dict, is_sudo: bool = False) -> types.InlineKeyboardMarkup:
+        """Main stats menu buttons."""
+        keyboard = [
+            [
+                self.ikb(text="🎵 Top Tracks", callback_data="GetStatsNow Tracks"),
+                self.ikb(text="👥 Top Users", callback_data="GetStatsNow Users"),
+            ],
+            [
+                self.ikb(text="📢 Top Groups", callback_data="GetStatsNow Chats"),
+                self.ikb(text="📊 This Group", callback_data="GetStatsNow Here"),
+            ],
+            [
+                self.ikb(text="🤖 Bot Info", callback_data="TopOverall s"),
+            ],
+        ]
+        if is_sudo:
+            keyboard.append([
+                self.ikb(text="⚙️ System Info", callback_data="bot_stats_sudo s"),
+            ])
+        return self.ikm(keyboard)
+
+    def back_stats_markup(self, _lang: dict) -> types.InlineKeyboardMarkup:
+        """Back button for stats."""
+        return self.ikm([[self.ikb(text="« Kembali", callback_data="stats_back")]])
+
+    def overall_stats_markup(self, _lang: dict, main: bool = False) -> types.InlineKeyboardMarkup:
+        """Overall stats navigation."""
+        if main:
+            return self.ikm([[self.ikb(text="« Kembali", callback_data="stats_back")]])
+        return self.ikm([[
+            self.ikb(text="« Kembali", callback_data="TopOverall s")
+        ]])
+
     def help_markup(
         self, _lang: dict, back: bool = False
     ) -> types.InlineKeyboardMarkup:
