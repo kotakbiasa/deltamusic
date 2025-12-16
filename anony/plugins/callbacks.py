@@ -174,14 +174,16 @@ async def _settings_cb(_, query: types.CallbackQuery):
 @app.on_callback_query(filters.regex("donate") & ~app.bl_users)
 @lang.language()
 async def _donate_cb(_, query: types.CallbackQuery):
-    """Handle donate button click and send QR code image."""
+    """Handle donate button click and show donation info."""
     from anony import config
     
     await query.answer()
     
     donate_text = query.lang["donate_text"]
     
-    await query.message.reply_photo(
-        photo=config.DONATE_QR_IMAGE,
-        caption=donate_text,
+    await query.message.reply_text(
+        text=donate_text,
+        reply_markup=types.InlineKeyboardMarkup(
+            [[types.InlineKeyboardButton(text="🎁 Dukung Kami", url=config.DONATE_QR_IMAGE)]]
+        ),
     )

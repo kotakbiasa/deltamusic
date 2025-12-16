@@ -11,11 +11,13 @@ from anony import app, config, lang
 @app.on_message(filters.command(["donate"]))
 @lang.language()
 async def donate_command(_, message: types.Message):
-    """Show donate information with QR code image."""
+    """Show donate information with inline button."""
     donate_text = message.lang["donate_text"]
     
-    await message.reply_photo(
-        photo=config.DONATE_QR_IMAGE,
-        caption=donate_text,
+    await message.reply_text(
+        text=donate_text,
+        reply_markup=types.InlineKeyboardMarkup(
+            [[types.InlineKeyboardButton(text="🎁 Dukung Kami", url=config.DONATE_QR_IMAGE)]]
+        ),
         quote=True,
     )
