@@ -12,8 +12,7 @@ from pyrogram import filters, types
 from anony import app
 
 
-@app.on_message(filters.command(["eval", "exec"]) & ~app.bl_users)
-@app.only_sudoers
+@app.on_message(filters.command(["eval", "exec"]) & app.sudoers)
 async def eval_cmd(_, message: types.Message):
     """Execute Python code (Sudo only)."""
     

@@ -8,8 +8,7 @@ from pyrogram import filters, types
 from anony import app, db
 
 
-@app.on_message(filters.command(["activevoice", "activevideo"]) & ~app.bl_users)
-@app.only_sudoers
+@app.on_message(filters.command(["activevoice", "activevideo"]) & app.sudoers)
 async def active_calls(_, message: types.Message):
     """Show all active voice/video calls."""
     text = "**Panggilan Aktif:**\n\n"

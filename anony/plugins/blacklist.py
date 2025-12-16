@@ -8,8 +8,7 @@ from pyrogram import filters, types
 from anony import app, db
 
 
-@app.on_message(filters.command(["blacklist", "unblacklist"]) & ~app.bl_users)
-@app.only_sudoers
+@app.on_message(filters.command(["blacklist", "unblacklist"]) & app.sudoers)
 async def blacklist_cmd(_, message: types.Message):
     """Blacklist/unblacklist a user or chat."""
     

@@ -16,16 +16,16 @@ async def add_sudo(_, message: types.Message):
     if not message.reply_to_message and len(message.command) < 2:
         return await message.reply_text("Reply ke user atau berikan user ID/username.")
     
-    user_id, username, full_name = await extract_user(message)
-    if not user_id:
+    user = await utils.extract_user(message)
+    if not user:
         return await message.reply_text("Tidak dapat menemukan user tersebut.")
     
-    if user_id in app.sudoers:
-        return await message.reply_text(f"{full_name} sudah menjadi sudoer.")
+    if user.id in app.sudoers:
+        return await message.reply_text(f"{user.mention} sudah menjadi sudoer.")
     
-    app.sudoers.append(user_id)
-    await db.add_sudo(user_id)
-    await message.reply_text(f"Menambahkan {full_name} ke sudoers.")
+    app.sudoers.append(user.id)
+    await db.add_sudo(user.id)
+    await message.reply_text(f"Menambahkan {user.mention} ke sudoers.")
 
 
 @app.on_message(filters.command(["rmsudo", "delsudo"]) & filters.user(app.owner))
@@ -35,13 +35,13 @@ async def remove_sudo(_, message: types.Message):
     if not message.reply_to_message and len(message.command) < 2:
         return await message.reply_text("Reply ke user atau berikan user ID/username.")
     
-    user_id, username, full_name = await extract_user(message)
-    if not user_id:
+    user = await utils.extract_user(message)
+    if not user:
         return await message.reply_text("Tidak dapat menemukan user tersebut.")
     
-    if user_id not in app.sudoers:
-        return await message.reply_text(f"{full_name} bukan sudoer.")
+    if user.id not in app.sudoers:
+        return await message.reply_text(f"{user.mention} bukan sudoer.")
     
-    app.sudoers.remove(user_id)
-    await db.del_sudo(user_id)
-    await message.reply_text(f"Menghapus {full_name} dari sudoers.")
+    app.sudoers.remove(user.id)
+    await db.del_sudo(user.id)
+    await message.reply_text(f"Menghapus {user.mention} dari sudoers.")
