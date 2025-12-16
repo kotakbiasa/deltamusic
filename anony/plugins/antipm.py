@@ -14,9 +14,10 @@ from anony import config, db, userbot
 APPROVED_USERS = set()
 PM_WARNS = {}
 
-# Custom messages (can be changed via commands)
+# Custom messages (loaded from database)
 CUSTOM_PM_WARN = None
 CUSTOM_PM_BLOCK = None
+MESSAGES_LOADED = False
 
 # Default messages
 DEFAULT_WARN_MSG = (
@@ -38,12 +39,26 @@ DEFAULT_BLOCK_MSG = (
 )
 
 
+async def load_custom_messages():
+    """Load custom PM messages from database."""
+    global CUSTOM_PM_WARN, CUSTOM_PM_BLOCK, MESSAGES_LOADED
+    
+    if not MESSAGES_LOADED:
+        messages = await db.get_pm_messages()
+        CUSTOM_PM_WARN = messages.get("warn")
+        CUSTOM_PM_BLOCK = messages.get("block")
+        MESSAGES_LOADED = True
+
+
 # PMPermit for Assistant Accounts
 @userbot.one.on_message(filters.private & filters.incoming, group=1)
 @userbot.two.on_message(filters.private & filters.incoming, group=1)
 @userbot.three.on_message(filters.private & filters.incoming, group=1)
 async def pmpermit_handler(client, message: Message):
     """PMPermit protection for assistant accounts."""
+    
+    # Load custom messages from database (once)
+    await load_custom_messages()
     
     # Skip if anti-PM is disabled
     if not config.ANTI_PM_ENABLED:
@@ -132,7 +147,8 @@ async def set_pm_warn(client, message: Message):
     
     custom_msg = message.text.split(maxsplit=1)[1]
     CUSTOM_PM_WARN = custom_msg
-    await message.reply_text(f"✅ Custom warning message set!\n\n**Preview:**\n{custom_msg.format(warn=1, total=config.PM_WARN_COUNT)}")
+    await db.set_pm_warn_msg(custom_msg)
+    await message.reply_text(f"✅ Custom warning message set and saved!\n\n**Preview:**\n{custom_msg.format(warn=1, total=config.PM_WARN_COUNT)}")
 
 
 # Set custom block message
@@ -153,7 +169,8 @@ async def set_pm_block(client, message: Message):
     
     custom_msg = message.text.split(maxsplit=1)[1]
     CUSTOM_PM_BLOCK = custom_msg
-    await message.reply_text(f"✅ Custom block message set!\n\n**Preview:**\n{custom_msg}")
+    await db.set_pm_block_msg(custom_msg)
+    await message.reply_text(f"✅ Custom block message set and saved!\n\n**Preview:**\n{custom_msg}")
 
 
 # Reset to default messages
@@ -166,7 +183,8 @@ async def reset_pm_messages(client, message: Message):
     
     CUSTOM_PM_WARN = None
     CUSTOM_PM_BLOCK = None
-    await message.reply_text("✅ PM messages reset to default!")
+    await db.clear_pm_messages()
+    await message.reply_text("✅ PM messages reset to default and cleared from database!")
 
 
 # Show current PM messages

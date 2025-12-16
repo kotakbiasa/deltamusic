@@ -46,6 +46,9 @@ class MongoDB:
         self.pm_warns = {}
         self.pm_warnsdb = self.db.pm_warns
 
+        self.pm_messages = {}
+        self.pm_messagesdb = self.db.pm_messages
+
     async def connect(self) -> None:
         """Check if we can connect to the database.
 
@@ -327,6 +330,43 @@ class MongoDB:
         warns = await self.get_pm_warns(user_id)
         from anony import config
         return warns >= config.PM_WARN_COUNT
+
+    # PM CUSTOM MESSAGES METHODS
+    async def get_pm_messages(self) -> dict:
+        """Get custom PM messages."""
+        if not self.pm_messages:
+            doc = await self.pm_messagesdb.find_one({"_id": "custom_messages"})
+            if doc:
+                self.pm_messages = {
+                    "warn": doc.get("warn"),
+                    "block": doc.get("block")
+                }
+            else:
+                self.pm_messages = {"warn": None, "block": None}
+        return self.pm_messages
+
+    async def set_pm_warn_msg(self, message: str) -> None:
+        """Set custom PM warning message."""
+        self.pm_messages["warn"] = message
+        await self.pm_messagesdb.update_one(
+            {"_id": "custom_messages"},
+            {"$set": {"warn": message}},
+            upsert=True
+        )
+
+    async def set_pm_block_msg(self, message: str) -> None:
+        """Set custom PM block message."""
+        self.pm_messages["block"] = message
+        await self.pm_messagesdb.update_one(
+            {"_id": "custom_messages"},
+            {"$set": {"block": message}},
+            upsert=True
+        )
+
+    async def clear_pm_messages(self) -> None:
+        """Clear custom PM messages (reset to default)."""
+        self.pm_messages = {"warn": None, "block": None}
+        await self.pm_messagesdb.delete_one({"_id": "custom_messages"})
 
 
     async def migrate_coll(self) -> None:
