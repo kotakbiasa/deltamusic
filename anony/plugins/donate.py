@@ -20,8 +20,8 @@ async def donate_command(_, message: types.Message):
             caption=donate_text,
             quote=True,
         )
-    except Exception:
+    except Exception as e:
         await message.reply_text(
-            "❌ Gagal mengirim QR code. Pastikan URL gambar di config benar.",
+            f"❌ Gagal mengirim QR code.\nError: `{e}`",
             quote=True,
         )

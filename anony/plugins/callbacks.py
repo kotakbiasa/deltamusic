@@ -189,6 +189,6 @@ async def _donate_cb(_, query: types.CallbackQuery):
     except Exception as e:
         # Show error if QR image fails
         await query.answer(
-            "❌ Gagal mengirim QR code. Hubungi admin.",
+            f"❌ Gagal mengirim QR code.\nError: {e}",
             show_alert=True
         )
