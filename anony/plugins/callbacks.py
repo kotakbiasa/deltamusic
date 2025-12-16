@@ -169,3 +169,30 @@ async def _settings_cb(_, query: types.CallbackQuery):
             chat_id,
         )
     )
+
+
+@app.on_callback_query(filters.regex("donate") & ~app.bl_users)
+@lang.language()
+async def _donate_cb(_, query: types.CallbackQuery):
+    """Handle donate button click and send QR code image."""
+    from anony import config
+    
+    await query.answer()
+    
+    donate_text = (
+        "💰 **Dukung Kami!**\n\n"
+        "Terima kasih atas dukungan Anda untuk terus mengembangkan bot ini.\n\n"
+        "Scan QR code di bawah ini untuk donasi:"
+    )
+    
+    try:
+        await query.message.reply_photo(
+            photo=config.DONATE_QR_IMAGE,
+            caption=donate_text,
+        )
+    except Exception as e:
+        # Show error if QR image fails
+        await query.answer(
+            "❌ Gagal mengirim QR code. Hubungi admin.",
+            show_alert=True
+        )

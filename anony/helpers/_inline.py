@@ -149,8 +149,10 @@ class Inline:
                 )
             ],
             [self.ikb(text=lang["help"], callback_data="help")],
-            [self.ikb(text=lang["channel"], url=config.SUPPORT_CHANNEL)],
-            [self.ikb(text=lang["donate"], url=config.DONATE_LINK)],
+            [
+                self.ikb(text=lang["channel"], url=config.SUPPORT_CHANNEL),
+                self.ikb(text=lang["donate"], callback_data="donate"),
+            ],
         ]
         if private:
             # Source button removed
