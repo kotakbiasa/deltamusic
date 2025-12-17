@@ -163,6 +163,13 @@ class TgCall(PyTgCalls):
         if not await db.get_call(chat_id):
             return
 
+        old_media = queue.get_current(chat_id)
+        if old_media and old_media.message_id:
+            try:
+                await app.delete_messages(chat_id, old_media.message_id)
+            except:
+                pass
+
         media = queue.get_next(chat_id)
         try:
             if media.message_id:

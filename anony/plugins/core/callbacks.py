@@ -89,14 +89,7 @@ async def _controls(_, query: types.CallbackQuery):
         reply = f"{user} memutar ulang streaming."
 
 
-    elif action == "shuffle":
-        # Shuffle the queue
-        success = queue.shuffle(chat_id)
-        if success:
-            items = queue.get_queue(chat_id)
-            return await query.answer(f"🔀 {len(items) - 1} lagu di-shuffle!", show_alert=True)
-        else:
-            return await query.answer("❌ Tidak ada yang bisa di-shuffle", show_alert=True)
+
 
     elif action == "stop":
         await anon.stop(chat_id)
