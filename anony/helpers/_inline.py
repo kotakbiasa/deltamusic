@@ -134,7 +134,7 @@ class Inline:
         )
 
     def settings_markup(
-        self, lang=None, admin_only=True, cmd_delete=True, language=None, chat_id=0
+        self, lang=None, admin_only=True, cmd_delete=True, chat_id=0
     ) -> types.InlineKeyboardMarkup:
         return self.ikm(
             [

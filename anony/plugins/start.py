@@ -59,13 +59,12 @@ async def start(_, message: types.Message):
 async def settings(_, message: types.Message):
     admin_only = await db.get_play_mode(message.chat.id)
     cmd_delete = await db.get_cmd_delete(message.chat.id)
-    _language = await db.get_lang(message.chat.id)
     
     await message.reply_text(
         text=f"<u><b>Pengaturan {message.chat.title}</b></u>\n\nKlik tombol di bawah untuk mengubah pengaturan chat ini.",
         parse_mode=enums.ParseMode.HTML,
         reply_markup=buttons.settings_markup(
-            {}, admin_only, cmd_delete, _language, message.chat.id
+            {}, admin_only, cmd_delete, message.chat.id
         ),
         quote=True,
     )

@@ -161,7 +161,6 @@ async def _settings_cb(_, query: types.CallbackQuery):
     chat_id = query.message.chat.id
     _admin = await db.get_play_mode(chat_id)
     _delete = await db.get_cmd_delete(chat_id)
-    _language = await db.get_lang(chat_id)
 
     if cmd[1] == "delete":
         _delete = not _delete
@@ -174,7 +173,6 @@ async def _settings_cb(_, query: types.CallbackQuery):
             {},
             _admin,
             _delete,
-            _language,
             chat_id,
         )
     )

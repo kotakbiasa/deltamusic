@@ -9,7 +9,7 @@ from pyrogram.types import InputMediaPhoto, Message
 from pytgcalls import PyTgCalls, exceptions, types
 from pytgcalls.pytgcalls_session import PyTgCallsSession
 
-from anony import app, config, db, lang, logger, queue, userbot, yt
+from anony import app, config, db, logger, queue, userbot, yt
 from anony.helpers import Media, Track, buttons, thumb
 
 
@@ -49,7 +49,6 @@ class TgCall(PyTgCalls):
         seek_time: int = 0,
     ) -> None:
         client = await db.get_assistant(chat_id)
-        _lang = await lang.get_lang(chat_id)
         _thumb = (
             await thumb.generate(media)
             if isinstance(media, Track)
@@ -57,7 +56,7 @@ class TgCall(PyTgCalls):
         )
 
         if not media.file_path:
-            return await message.edit_text(_lang["error_no_file"].format(config.SUPPORT_CHANNEL))
+            return await message.edit_text(f"File tidak ditemukan. Hubungi @{config.SUPPORT_CHANNEL}")
 
         stream = types.MediaStream(
             media_path=media.file_path,
@@ -94,12 +93,7 @@ class TgCall(PyTgCalls):
                 except:
                     pass
                 
-                text = _lang["play_media"].format(
-                    media.url,
-                    media.title,
-                    media.duration,
-                    media.user,
-                )
+                text = f"<b>Sedang memutar:</b>\n\n<a href='{media.url}'>{media.title}</a>\n<b>Durasi:</b> {media.duration}\n<b>Diminta oleh:</b> {media.user}"
                 keyboard = buttons.controls(chat_id)
                 try:
                     await message.edit_media(
@@ -117,17 +111,17 @@ class TgCall(PyTgCalls):
                         reply_markup=keyboard,
                     )).id
         except FileNotFoundError:
-            await message.edit_text(_lang["error_no_file"].format(config.SUPPORT_CHANNEL))
+            await message.edit_text(f"File tidak ditemukan. Hubungi @{config.SUPPORT_CHANNEL}")
             await self.play_next(chat_id)
         except exceptions.NoActiveGroupCall:
             await self.stop(chat_id)
-            await message.edit_text(_lang["error_no_call"])
+            await message.edit_text("Tidak ada panggilan video aktif.")
         except exceptions.NoAudioSourceFound:
-            await message.edit_text(_lang["error_no_audio"])
+            await message.edit_text("Sumber audio tidak ditemukan.")
             await self.play_next(chat_id)
         except (ConnectionNotFound, TelegramServerError):
             await self.stop(chat_id)
-            await message.edit_text(_lang["error_tg_server"])
+            await message.edit_text("Error server Telegram.")
 
 
     async def replay(self, chat_id: int) -> None:
@@ -135,8 +129,7 @@ class TgCall(PyTgCalls):
             return
 
         media = queue.get_current(chat_id)
-        _lang = await lang.get_lang(chat_id)
-        msg = await app.send_message(chat_id=chat_id, text=_lang["play_again"])
+        msg = await app.send_message(chat_id=chat_id, text="Memutar ulang...")
         await self.play_media(chat_id, msg, media)
 
 
@@ -159,14 +152,13 @@ class TgCall(PyTgCalls):
         if not media:
             return await self.stop(chat_id)
 
-        _lang = await lang.get_lang(chat_id)
-        msg = await app.send_message(chat_id=chat_id, text=_lang["play_next"])
+        msg = await app.send_message(chat_id=chat_id, text="Memutar lagu selanjutnya...")
         if not media.file_path:
             media.file_path = await yt.download(media.id, video=media.video)
             if not media.file_path:
                 await self.stop(chat_id)
                 return await msg.edit_text(
-                    _lang["error_no_file"].format(config.SUPPORT_CHANNEL)
+                    f"File tidak ditemukan. Hubungi @{config.SUPPORT_CHANNEL}"
                 )
 
         media.message_id = msg.id
