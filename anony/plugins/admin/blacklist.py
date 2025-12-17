@@ -14,7 +14,6 @@ async def blacklist_cmd(_, message: types.Message):
     
     if len(message.command) < 2:
         return await message.reply_text(
-        return await message.reply_text(
             "ℹ️ <b>Penggunaan:</b>\n\n<blockquote>/blacklist [chat_id|user_id]</blockquote>",
             parse_mode="html"
         )
