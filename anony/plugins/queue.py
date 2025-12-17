@@ -17,7 +17,7 @@ async def _queue(_, message: types.Message):
     await message.reply_text("Mengambil antrian...")
     
     playing = await db.playing(message.chat.id)
-    items = queue.get(message.chat.id)
+    items = queue.get_queue(message.chat.id)
     
     if not items:
         return await message.reply_text("Antrian kosong.")
