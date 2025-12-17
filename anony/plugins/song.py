@@ -86,9 +86,26 @@ async def song_command(_, message: types.Message):
             action=enums.ChatAction.UPLOAD_AUDIO
         )
         
+        # Build caption with song info
+        caption = f"🎵 <b>{track.title}</b>\n\n"
+        caption += f"⏱ <b>Durasi:</b> {track.duration}\n"
+        if track.view_count:
+            caption += f"👁 <b>Views:</b> {track.view_count}"
+        
+        # Create inline button for YouTube link
+        keyboard = types.InlineKeyboardMarkup([
+            [types.InlineKeyboardButton(
+                text="🔗 YouTube Link",
+                url=track.url
+            )]
+        ])
+        
         # Send audio without thumbnail for now
         await message.reply_audio(
             audio=file_path,
+            caption=caption,
+            parse_mode=enums.ParseMode.HTML,
+            reply_markup=keyboard,
             title=track.title,
             performer=track.channel_name,
             duration=track.duration_sec
