@@ -100,9 +100,7 @@ class TgCall(PyTgCalls):
 <blockquote>🎧 <a href='{media.url}'>{media.title}</a>
 
 ⏱ <b>Durasi:</b> {media.duration}
-👤 <b>Diminta oleh:</b> {media.user}</blockquote>
-
-<i>Gunakan tombol di bawah untuk mengontrol pemutaran</i>"""
+👤 <b>Diminta oleh:</b> {media.user}</blockquote>"""
                 keyboard = buttons.controls(chat_id)
                 try:
                     await message.edit_media(

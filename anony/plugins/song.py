@@ -21,7 +21,7 @@ async def song_command(_, message: types.Message):
     m = await message.reply_text("Mencari lagu...")
     
     try:
-        search = await yt.search(query)
+        search = await yt.search(query, m.id)
         if not search:
             return await m.edit_text("Gagal menemukan atau mengunduh lagu.\n\nJika masalah berlanjut, laporkan ke <a href={}>chat dukungan</a>.".format(config.SUPPORT_CHANNEL))
         
