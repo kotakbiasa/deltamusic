@@ -452,9 +452,8 @@ class MongoDB:
             {"$sort": {"count": -1}},
             {"$limit": limit}
         ]
-        cursor = self.statsdb.aggregate(pipeline)
-        docs = await cursor.to_list(length=limit)
         results = {}
+        docs = [doc async for doc in self.statsdb.aggregate(pipeline)]
         for doc in docs:
             try:
                 chat_id = int(doc["_id"])
