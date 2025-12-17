@@ -22,14 +22,35 @@ async def _queue(_, message: types.Message):
     if not items:
         return await message.reply_text("Antrian kosong.")
     
-    text = "<b>Antrian:</b>\n\n<blockquote>"
+    # Emoji numbers for first 10 items
+    emoji_numbers = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+    
+    # Calculate total duration
+    total_seconds = sum(item.duration_sec for item in items if hasattr(item, 'duration_sec'))
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    
+    if hours > 0:
+        total_duration = f"{hours}:{minutes:02d}:00"
+    else:
+        total_duration = f"{minutes}:00"
+    
+    # Build queue text
+    text = f"📋 <b>Antrian Musik</b>\n\n"
+    text += f"<b>Total:</b> {len(items)} lagu • ⏱ {total_duration}\n\n"
+    text += "<blockquote>"
+    
     for i, item in enumerate(items[:10], 1):
-        text += f"{i}. {item.title}\n"
+        # Media type indicator
+        media_icon = "🎬" if item.video else "🎵"
+        # Use emoji number if available, otherwise use regular number
+        num = emoji_numbers[i-1] if i <= 10 else f"{i}."
+        text += f"{num} {media_icon} {item.title}\n"
     
     text += "</blockquote>"
     
     if len(items) > 10:
-        text += f"\n\n... dan {len(items) - 10} lagi"
+        text += f"\n\n➕ <i>... dan {len(items) - 10} lagu lagi</i>"
     
     await message.reply_text(
         text,

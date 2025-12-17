@@ -93,7 +93,16 @@ class TgCall(PyTgCalls):
                 except:
                     pass
                 
-                text = f"<b>Sedang memutar:</b>\n\n<a href='{media.url}'>{media.title}</a>\n<b>Durasi:</b> {media.duration}\n<b>Diminta oleh:</b> {media.user}"
+                
+                # Enhanced now playing message
+                text = f"""🎵 <b>Sedang Memutar</b>
+
+<blockquote>🎧 <a href='{media.url}'>{media.title}</a>
+
+⏱ <b>Durasi:</b> {media.duration}
+👤 <b>Diminta oleh:</b> {media.user}</blockquote>
+
+<i>Gunakan tombol di bawah untuk mengontrol pemutaran</i>"""
                 keyboard = buttons.controls(chat_id)
                 try:
                     await message.edit_media(
