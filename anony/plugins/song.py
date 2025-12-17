@@ -108,9 +108,11 @@ async def song_command(_, message: types.Message):
         
         # Build caption with song info
         caption = f"🎵 <b>{track.title}</b>\n\n"
+        caption += "<blockquote>"
         caption += f"⏱ <b>Durasi:</b> {track.duration}\n"
         if track.view_count:
             caption += f"👁 <b>Views:</b> {track.view_count}"
+        caption += "</blockquote>"
         
         # Create inline button for YouTube link
         keyboard = types.InlineKeyboardMarkup([
