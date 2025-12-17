@@ -187,11 +187,11 @@ async def _donate_cb(_, query: types.CallbackQuery):
     
     await query.answer()
     
-    donate_text = "✨ **Dukung Bot Musik Tetap Hidup!** ✨\n\nSuka dengan fitur bot ini? Bantu kami agar server tetap menyala dan bot bisa terus memutar musik tanpa henti! 🚀\nDonasi kalian sangat berarti untuk membayar biaya server bulanan kami. 🔌\n\nYuk scan QR di bawah ini untuk donasi! 👇"
+    donate_text = "✨ <b>Dukung Bot Musik Tetap Hidup!</b> ✨\n\n<blockquote>Suka dengan fitur bot ini? Bantu kami agar server tetap menyala dan bot bisa terus memutar musik tanpa henti! 🚀\nDonasi kalian sangat berarti untuk membayar biaya server bulanan kami. 🔌</blockquote>\n\nYuk scan QR di bawah ini untuk donasi! 👇"
     
     await query.message.reply_text(
         text=donate_text,
-        parse_mode=enums.ParseMode.MARKDOWN,
+        parse_mode=enums.ParseMode.HTML,
         reply_markup=types.InlineKeyboardMarkup(
             [[types.InlineKeyboardButton(text="🎁 Dukung Kami", url=config.DONATE_QR_IMAGE)]]
         ),

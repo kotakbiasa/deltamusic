@@ -22,8 +22,8 @@ async def stats_command(_, m: types.Message):
     is_sudo = m.from_user.id in app.sudoers
     await m.reply_photo(
         photo=config.STATS_IMG_URL,
-        caption=f"🎵 **Selamat Datang di Statistik {app.name}!**\n\nPilih kategori statistik yang ingin dilihat:",
-        parse_mode=enums.ParseMode.MARKDOWN,
+        caption=f"🎵 <b>Selamat Datang di Statistik {app.name}!</b>\n\n<blockquote>Pilih kategori statistik yang ingin dilihat:</blockquote>",
+        parse_mode=enums.ParseMode.HTML,
         reply_markup=buttons.stats_buttons({}, is_sudo),
     )
 
@@ -42,8 +42,8 @@ async def get_stats_callback(_, query: types.CallbackQuery):
     
     target = f"Grup {query.message.chat.title}" if what == "Here" else what
     await query.edit_message_caption(
-        f"📊 **Top 10 {target}**",
-        parse_mode=enums.ParseMode.MARKDOWN
+        f"📊 <b>Top 10 {target}</b>",
+        parse_mode=enums.ParseMode.HTML
     )
     
     # Fetch data based on type
@@ -62,7 +62,7 @@ async def get_stats_callback(_, query: types.CallbackQuery):
         await asyncio.sleep(1)
         return await query.edit_message_caption(
             "Belum ada data statistik.",
-            parse_mode=enums.ParseMode.MARKDOWN,
+            parse_mode=enums.ParseMode.HTML,
             reply_markup=buttons.back_stats_markup({})
         )
     
@@ -80,16 +80,16 @@ async def get_stats_callback(_, query: types.CallbackQuery):
             count = data["spot"]
             
             if track_id == "telegram":
-                msg += f"🎵 [Telegram Media](https://t.me/{config.SUPPORT_CHANNEL}) **dimainkan {count} kali**\n\n"
+                msg += f"🎵 <a href='https://t.me/{config.SUPPORT_CHANNEL}'>Telegram Media</a> <b>dimainkan {count} kali</b>\n"
             else:
-                msg += f"🎵 [{title}](https://www.youtube.com/watch?v={track_id}) **dimainkan {count} kali**\n\n"
+                msg += f"🎵 <a href='https://www.youtube.com/watch?v={track_id}'>{title}</a> <b>dimainkan {count} kali</b>\n"
         
         if what == "Tracks":
             queries = await db.get_queries()
-            header = f"🎵 **Statistik Global**\n\nTotal Queries: {queries}\nBot: {app.name}\nTotal Tracks: {len(stats)}\nTotal Plays: {total_plays}\n\n**Top {limit} Most Played:**\n\n"
+            header = f"🎵 <b>Statistik Global</b>\n\nTotal Queries: {queries}\nBot: {app.name}\nTotal Tracks: {len(stats)}\nTotal Plays: {total_plays}\n\n<b>Top {limit} Most Played:</b>\n\n<blockquote>"
         else:
-            header = f"📊 **Statistik Grup**\n\nTotal Tracks: {len(stats)}\nTotal Plays: {total_plays}\n\n**Top {limit} Lagu:**\n\n"
-        msg = header + "\n" + msg
+            header = f"📊 <b>Statistik Grup</b>\n\nTotal Tracks: {len(stats)}\nTotal Plays: {total_plays}\n\n<b>Top {limit} Lagu:</b>\n\n<blockquote>"
+        msg = header + msg + "</blockquote>"
         
     elif what in ["Users", "Chats"]:
         # Display users/chats
@@ -104,15 +104,15 @@ async def get_stats_callback(_, query: types.CallbackQuery):
                 continue
             
             limit += 1
-            msg += f"💖 `{extract}` dimainkan {count} kali.\n\n"
+            msg += f"💖 <code>{extract}</code> dimainkan {count} kali.\n"
         
         if what == "Users":
-            header = f"👥 **Top {limit} User Teraktif di {app.name}:**\n\n"
+            header = f"👥 <b>Top {limit} User Teraktif di {app.name}:</b>\n\n<blockquote>"
         else:
-            header = f"📈 **Top {limit} Grup Teraktif di {app.name}:**\n\n"
-        msg = header + "\n" + msg
+            header = f"📈 <b>Top {limit} Grup Teraktif di {app.name}:</b>\n\n<blockquote>"
+        msg = header + msg + "</blockquote>"
     
-    med = InputMediaPhoto(media=config.GLOBAL_IMG_URL, caption=msg, parse_mode=enums.ParseMode.MARKDOWN)
+    med = InputMediaPhoto(media=config.GLOBAL_IMG_URL, caption=msg, parse_mode=enums.ParseMode.HTML)
     try:
         await query.edit_message_media(
             media=med,
@@ -122,7 +122,7 @@ async def get_stats_callback(_, query: types.CallbackQuery):
         await query.message.reply_photo(
             photo=config.GLOBAL_IMG_URL,
             caption=msg,
-            parse_mode=enums.ParseMode.MARKDOWN,
+            parse_mode=enums.ParseMode.HTML,
             reply_markup=buttons.back_stats_markup({})
         )
 
@@ -135,7 +135,7 @@ async def overall_stats_callback(_, query: types.CallbackQuery):
     except:
         pass
     
-    await query.edit_message_caption("Mengambil statistik bot...", parse_mode=enums.ParseMode.MARKDOWN)
+    await query.edit_message_caption("Mengambil statistik bot...", parse_mode=enums.ParseMode.HTML)
     
     served_chats = len(await db.get_chats())
     served_users = len(await db.get_users())
@@ -145,23 +145,23 @@ async def overall_stats_callback(_, query: types.CallbackQuery):
     mod = len(all_modules)
     assistant = len(userbot.clients)
     
-    text = f"""🎵 **Statistik & Info Bot:**
+    text = f"""🎵 <b>Statistik & Info Bot:</b>
 
-🎵 **Modul:** {mod}
-🎵 **Grup:** {served_chats}
-🎵 **User:** {served_users}
-🎵 **Diblokir:** {blocked}
-🎵 **Sudoers:** {sudoers}
+<blockquote>🎵 <b>Modul:</b> {mod}
+🎵 <b>Grup:</b> {served_chats}
+🎵 <b>User:</b> {served_users}
+🎵 <b>Diblokir:</b> {blocked}
+🎵 <b>Sudoers:</b> {sudoers}
 
-🎵 **Queries:** {total_queries}
-🎵 **Assistant:** {assistant}
-🎵 **Auto Leave:** {"Ya" if config.AUTO_LEAVE else "Tidak"}
+🎵 <b>Queries:</b> {total_queries}
+🎵 <b>Assistant:</b> {assistant}
+🎵 <b>Auto Leave:</b> {"Ya" if config.AUTO_LEAVE else "Tidak"}
 
-🎵 **Durasi Limit:** {config.DURATION_LIMIT // 60} menit
-🎵 **Playlist Limit:** {config.PLAYLIST_LIMIT}
-🎵 **Queue Limit:** {config.QUEUE_LIMIT}"""
+🎵 <b>Durasi Limit:</b> {config.DURATION_LIMIT // 60} menit
+🎵 <b>Playlist Limit:</b> {config.PLAYLIST_LIMIT}
+🎵 <b>Queue Limit:</b> {config.QUEUE_LIMIT}</blockquote>"""
     
-    med = InputMediaPhoto(media=config.STATS_IMG_URL, caption=text, parse_mode=enums.ParseMode.MARKDOWN)
+    med = InputMediaPhoto(media=config.STATS_IMG_URL, caption=text, parse_mode=enums.ParseMode.HTML)
     try:
         await query.edit_message_media(
             media=med,
@@ -171,7 +171,7 @@ async def overall_stats_callback(_, query: types.CallbackQuery):
         await query.message.reply_photo(
             photo=config.STATS_IMG_URL,
             caption=text,
-            parse_mode=enums.ParseMode.MARKDOWN,
+            parse_mode=enums.ParseMode.HTML,
             reply_markup=buttons.overall_stats_markup({}, main=True)
         )
 
@@ -187,7 +187,7 @@ async def sudo_stats_callback(_, query: types.CallbackQuery):
     except:
         pass
     
-    await query.edit_message_caption("Mengambil system info...", parse_mode=enums.ParseMode.MARKDOWN)
+    await query.edit_message_caption("Mengambil system info...", parse_mode=enums.ParseMode.HTML)
     
     sc = platform.system()
     p_core = psutil.cpu_count(logical=False)
@@ -203,19 +203,19 @@ async def sudo_stats_callback(_, query: types.CallbackQuery):
     total_storage = round(hdd.total / (1024.0**3))
     used_storage = round(hdd.used / (1024.0**3))
     
-    text = f"""⚙️ **System Information**
+    text = f"""⚙️ <b>System Information</b>
 
-**Platform:** {sc}
-**RAM:** {ram}
-**Physical Cores:** {p_core}
-**Total Cores:** {t_core}
-**CPU Frequency:** {cpu_freq}
+<blockquote><b>Platform:</b> {sc}
+<b>RAM:</b> {ram}
+<b>Physical Cores:</b> {p_core}
+<b>Total Cores:</b> {t_core}
+<b>CPU Frequency:</b> {cpu_freq}
 
-**Storage Total:** {total_storage} GB
-**Storage Used:** {used_storage} GB
-**Storage Free:** {total_storage - used_storage} GB"""
+<b>Storage Total:</b> {total_storage} GB
+<b>Storage Used:</b> {used_storage} GB
+<b>Storage Free:</b> {total_storage - used_storage} GB</blockquote>"""
     
-    med = InputMediaPhoto(media=config.STATS_IMG_URL, caption=text, parse_mode=enums.ParseMode.MARKDOWN)
+    med = InputMediaPhoto(media=config.STATS_IMG_URL, caption=text, parse_mode=enums.ParseMode.HTML)
     try:
         await query.edit_message_media(
             media=med,
@@ -225,7 +225,7 @@ async def sudo_stats_callback(_, query: types.CallbackQuery):
         await query.message.reply_photo(
             photo=config.STATS_IMG_URL,
             caption=text,
-            parse_mode=enums.ParseMode.MARKDOWN,
+            parse_mode=enums.ParseMode.HTML,
             reply_markup=buttons.overall_stats_markup({})
         )
 
@@ -241,8 +241,8 @@ async def stats_back_callback(_, query: types.CallbackQuery):
     is_sudo = query.from_user.id in app.sudoers
     med = InputMediaPhoto(
         media=config.STATS_IMG_URL,
-        caption=f"🎵 **Selamat Datang di Statistik {app.name}!**\n\nPilih kategori statistik yang ingin dilihat:",
-        parse_mode=enums.ParseMode.MARKDOWN
+        caption=f"🎵 <b>Selamat Datang di Statistik {app.name}!</b>\n\n<blockquote>Pilih kategori statistik yang ingin dilihat:</blockquote>",
+        parse_mode=enums.ParseMode.HTML
     )
     try:
         await query.edit_message_media(
@@ -252,7 +252,7 @@ async def stats_back_callback(_, query: types.CallbackQuery):
     except:
         await query.message.reply_photo(
             photo=config.STATS_IMG_URL,
-            caption=f"🎵 **Selamat Datang di Statistik {app.name}!**\n\nPilih kategori statistik yang ingin dilihat:",
-            parse_mode=enums.ParseMode.MARKDOWN,
+            caption=f"🎵 <b>Selamat Datang di Statistik {app.name}!</b>\n\n<blockquote>Pilih kategori statistik yang ingin dilihat:</blockquote>",
+            parse_mode=enums.ParseMode.HTML,
             reply_markup=buttons.stats_buttons({}, is_sudo)
         )

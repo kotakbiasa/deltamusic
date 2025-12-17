@@ -3,7 +3,7 @@
 # This file is part of AnonXMusic
 
 
-from pyrogram import filters, types
+from pyrogram import enums, filters, types
 
 from anony import app, db, queue
 from anony.helpers import buttons
@@ -22,15 +22,18 @@ async def _queue(_, message: types.Message):
     if not items:
         return await message.reply_text("Antrian kosong.")
     
-    text = "**Antrian:**\n\n"
+    text = "<b>Antrian:</b>\n\n<blockquote>"
     for i, item in enumerate(items[:10], 1):
         text += f"{i}. {item.title}\n"
     
+    text += "</blockquote>"
+    
     if len(items) > 10:
-        text += f"\n... dan {len(items) - 10} lagi"
+        text += f"\n\n... dan {len(items) - 10} lagi"
     
     await message.reply_text(
         text,
+        parse_mode=enums.ParseMode.HTML,
         reply_markup=buttons.queue_markup(
             message.chat.id,
             "Sedang memutar" if playing else "Streaming dijeda",
