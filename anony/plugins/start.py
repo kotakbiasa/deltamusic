@@ -29,9 +29,9 @@ async def start(_, message: types.Message):
 
     private = message.chat.type == enums.ChatType.PRIVATE
     _text = (
-        f"👋 <b>Halo {message.from_user.first_name}!</b>\n\n🎵 Selamat datang di <b>{app.name}</b>!\n\n> 🎶 Bot pemutar musik dengan fitur-fitur keren dan berguna untuk grup Telegram Anda!\n> 🎧 Streaming musik berkualitas tinggi\n> 📝 Playlist dan queue management\n> ⚡ Fast & Responsive\n\n<b><i>Klik tombol bantuan untuk info lebih lanjut.</i></b>"
+        f"👋 <b>Halo {message.from_user.first_name}!</b>\n\n🎵 Selamat datang di <b>{app.name}</b>!\n\n<blockquote>🎶 Bot pemutar musik dengan fitur-fitur keren dan berguna untuk grup Telegram Anda!\n🎧 Streaming musik berkualitas tinggi\n📝 Playlist dan queue management\n⚡ Fast & Responsive</blockquote>\n\n<b><i>Klik tombol bantuan untuk info lebih lanjut.</i></b>"
         if private
-        else f"👋 <b>Halo semuanya!</b>\n\n> 🎵 <b>{app.name}</b> sudah aktif dan siap memutar musik!\n> 🎶 Ketik /help untuk melihat semua perintah yang tersedia.\n\n<b>Fitur Utama:</b>\n• 🎧 Streaming musik berkualitas\n• 📝 Playlist & Queue\n• ⚡ Cepat & Stabil"
+        else f"👋 <b>Halo semuanya!</b>\n\n<blockquote>🎵 <b>{app.name}</b> sudah aktif dan siap memutar musik!\n🎶 Ketik /help untuk melihat semua perintah yang tersedia.</blockquote>\n\n<b>Fitur Utama:</b>\n• 🎧 Streaming musik berkualitas\n• 📝 Playlist & Queue\n• ⚡ Cepat & Stabil"
     )
 
     key = buttons.start_key({}, private)
