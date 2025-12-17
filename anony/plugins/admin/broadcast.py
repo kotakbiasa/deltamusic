@@ -40,7 +40,6 @@ async def broadcast_message(_, message: types.Message):
             failed += 1
     
     await sent.edit_text(
-    await sent.edit_text(
         f"✅ <b>Broadcast Selesai</b>\n\n<blockquote><b>Sukses:</b> {success}\n<b>Gagal:</b> {failed}</blockquote>",
         parse_mode="html"
     )

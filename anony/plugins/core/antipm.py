@@ -170,22 +170,6 @@ async def reset_pm_messages(client, message: Message):
 async def pm_auto_help(client, message: Message):
     """Show Auto Clear PM help."""
     help_text = (
-        "**🧹 Auto Clear PM (Tanpa Blokir)**\n\n"
-        
-        "**Cara Kerja:**\n"
-        "• User PM → Bot kirim peringatan\n"
-        "• Tunggu 3 detik\n"
-        "• Hapus pesan user + peringatan\n"
-        "• TIDAK ADA BLOKIR\n\n"
-        
-        "**Command:**\n"
-        "• `.approve` - Whitelist user (chat tidak dihapus)\n"
-        "• `.disapprove` - Kembalikan ke auto delete\n"
-        "• `.setpmwarn` - Custom pesan peringatan\n"
-        "• `.resetpm` - Reset ke pesan default"
-    )
-    
-    new_help = (
         "🧹 <b>Auto Clear PM (Tanpa Blokir)</b>\n\n"
         "<blockquote><b>Cara Kerja:</b>\n"
         "• User PM → Bot kirim peringatan\n"
@@ -199,4 +183,4 @@ async def pm_auto_help(client, message: Message):
         "• <code>.resetpm</code> - Reset default"
     )
     
-    await message.reply_text(new_help, parse_mode="html")
+    await message.reply_text(help_text, parse_mode="html")
