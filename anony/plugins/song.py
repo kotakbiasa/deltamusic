@@ -34,9 +34,16 @@ async def song_command(_, message: types.Message):
         import yt_dlp
         import os
         import asyncio
+        import re
         
         yturl = f"https://www.youtube.com/watch?v={track.id}"
-        output_template = f"downloads/{track.id}.%(ext)s"
+        
+        # Sanitize title for filename (remove special characters)
+        safe_title = re.sub(r'[^\w\s-]', '', track.title)
+        safe_title = re.sub(r'[-\s]+', '_', safe_title)
+        safe_title = safe_title[:50]  # Limit length
+        
+        output_template = f"downloads/{safe_title}.%(ext)s"
         
         # Get cookies for YouTube authentication
         cookie = yt.get_cookies()
@@ -63,7 +70,7 @@ async def song_command(_, message: types.Message):
         await asyncio.to_thread(_download)
         
         # File will be .mp3 after conversion
-        file_path = f"downloads/{track.id}.mp3"
+        file_path = f"downloads/{safe_title}.mp3"
         
         if not os.path.exists(file_path):
             return await mystic.edit_text(
@@ -86,6 +93,19 @@ async def song_command(_, message: types.Message):
             action=enums.ChatAction.UPLOAD_AUDIO
         )
         
+        # Download thumbnail
+        thumb_path = None
+        try:
+            import aiohttp
+            thumb_path = f"downloads/{safe_title}_thumb.jpg"
+            async with aiohttp.ClientSession() as session:
+                async with session.get(track.thumbnail) as resp:
+                    if resp.status == 200:
+                        with open(thumb_path, 'wb') as f:
+                            f.write(await resp.read())
+        except:
+            thumb_path = None
+        
         # Build caption with song info
         caption = f"🎵 <b>{track.title}</b>\n\n"
         caption += f"⏱ <b>Durasi:</b> {track.duration}\n"
@@ -100,12 +120,13 @@ async def song_command(_, message: types.Message):
             )]
         ])
         
-        # Send audio without thumbnail for now
+        # Send audio with thumbnail
         await message.reply_audio(
             audio=file_path,
             caption=caption,
             parse_mode=enums.ParseMode.HTML,
             reply_markup=keyboard,
+            thumb=thumb_path,
             title=track.title,
             performer=track.channel_name,
             duration=track.duration_sec
@@ -116,6 +137,8 @@ async def song_command(_, message: types.Message):
         # Cleanup
         try:
             os.remove(file_path)
+            if thumb_path:
+                os.remove(thumb_path)
         except:
             pass
             
