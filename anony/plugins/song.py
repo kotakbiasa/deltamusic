@@ -31,10 +31,41 @@ async def song_command(_, message: types.Message):
         # Auto download - no confirmation needed
         await mystic.edit_text("⏳ Downloading audio...")
         
-        # Use existing download method from YouTube class
-        file_path = await yt.download(track.id, video=False)
+        import yt_dlp
+        import os
+        import asyncio
         
-        if not file_path:
+        yturl = f"https://www.youtube.com/watch?v={track.id}"
+        output_template = f"downloads/{track.id}.%(ext)s"
+        
+        # Get cookies for YouTube authentication
+        cookie = yt.get_cookies()
+        
+        # Download and convert to MP3
+        ydl_opts = {
+            "format": "bestaudio/best",
+            "outtmpl": output_template,
+            "quiet": True,
+            "no_warnings": True,
+            "cookiefile": cookie,
+            "keepvideo": False,  # Remove original after conversion
+            "postprocessors": [{
+                "key": "FFmpegExtractAudio",
+                "preferredcodec": "mp3",
+                "preferredquality": "320",
+            }],
+        }
+        
+        def _download():
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.extract_info(yturl, download=True)
+        
+        await asyncio.to_thread(_download)
+        
+        # File will be .mp3 after conversion
+        file_path = f"downloads/{track.id}.mp3"
+        
+        if not os.path.exists(file_path):
             return await mystic.edit_text(
                 "❌ Gagal download lagu.\n\nHubungi @" + config.SUPPORT_CHANNEL
             )
