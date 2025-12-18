@@ -8,3 +8,9 @@ py-tgcalls~=2.2.8
 py-yt-search~=0.5.4
 python-dotenv~=1.1.1
 yt-dlp[default]>=2025.11.12
+
+# Optional: Dashboard Dependencies
+# Install with: pip install -r dashboard/requirements.txt
+# - fastapi>=0.109.0
+# - uvicorn[standard]>=0.27.0
+# - pydantic>=2.5.0

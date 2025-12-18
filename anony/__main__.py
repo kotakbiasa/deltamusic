@@ -36,6 +36,12 @@ async def main():
     app.bl_users.update(await db.get_blacklisted())
     logger.info(f"👥 Loaded {len(app.sudoers)} sudo users.")
     
+    # Start cleanup scheduler
+    from anony import cleanup, tasks
+    cleanup_task = asyncio.create_task(cleanup.start())
+    tasks.append(cleanup_task)
+    logger.info("🧹 File cleanup scheduler started")
+    
     logger.info("✅ Bot is ready and running!")
     logger.info("🎵 ═══════════════════════════════════════════════ 🎵")
 

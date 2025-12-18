@@ -56,6 +56,9 @@ queue = Queue()
 from anony.core.calls import TgCall
 anon = TgCall()
 
+from anony.helpers._cleanup import cleanup
+from anony.helpers._lyrics import lyrics_searcher
+
 
 async def stop() -> None:
     logger.info("Stopping...")
@@ -69,5 +72,6 @@ async def stop() -> None:
     await app.exit()
     await userbot.exit()
     await db.close()
+    await lyrics_searcher.close()
 
     logger.info("Stopped.\n")

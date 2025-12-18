@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeltaMusic Statistics Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.6s ease;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+
+        .stat-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .chart-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        .table-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            animation: fadeInUp 1s ease;
+            overflow-x: auto;
+        }
+
+        .table-container h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        table tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        table tbody tr:hover {
+            background: #f8f9ff;
+        }
+
+        .rank {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            z-index: 1000;
+        }
+
+        .refresh-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(0,0,0,0.3);
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.95);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-wrapper {
+                height: 300px;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 DeltaMusic Dashboard</h1>
+            <p>Real-time Statistics & Analytics</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon">👥</div>
+                <div class="label">Total Users</div>
+                <div class="value" id="totalUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">💬</div>
+                <div class="label">Total Groups</div>
+                <div class="value" id="totalChats">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">🎵</div>
+                <div class="label">Total Plays</div>
+                <div class="value" id="totalPlays">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">🔊</div>
+                <div class="label">Active Calls</div>
+                <div class="value" id="activeCalls">-</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <h2>📈 Play Count Trend (Last 7 Days)</h2>
+            <div class="chart-wrapper">
+                <canvas id="dailyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <h2>🏆 Top Tracks</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Song Title</th>
+                        <th>Duration</th>
+                        <th>Play Count</th>
+                    </tr>
+                </thead>
+                <tbody id="topTracksTable">
+                    <tr><td colspan="4" class="loading">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h2>👤 Most Active Users</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th>User ID</th>
+                        <th>Play Count</th>
+                    </tr>
+                </thead>
+                <tbody id="topUsersTable">
+                    <tr><td colspan="4" class="loading">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <h2>💬 Most Active Groups</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Group Name</th>
+                        <th>Play Count</th>
+                    </tr>
+                </thead>
+                <tbody id="topChatsTable">
+                    <tr><td colspan="3" class="loading">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <button class="refresh-btn" onclick="loadAllData()" title="Refresh Data">
+        🔄
+    </button>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        let dailyChart = null;
+        const API_BASE = window.location.origin;
+
+        async function fetchAPI(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE}/api/${endpoint}`);
+                if (!response.ok) throw new Error('API request failed');
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                return null;
+            }
+        }
+
+        async function loadOverview() {
+            const data = await fetchAPI('overview');
+            if (data) {
+                document.getElementById('totalUsers').textContent = data.total_users.toLocaleString();
+                document.getElementById('totalChats').textContent = data.total_chats.toLocaleString();
+                document.getElementById('totalPlays').textContent = data.total_plays.toLocaleString();
+                document.getElementById('activeCalls').textContent = data.active_calls.toLocaleString();
+            }
+        }
+
+        async function loadDailyStats() {
+            const data = await fetchAPI('daily-stats?days=7');
+            if (data) {
+                const labels = data.map(d => {
+                    const date = new Date(d.date);
+                    return date.toLocaleDateString('id-ID', { weekday: 'short' });
+                });
+                const values = data.map(d => d.play_count);
+
+                const ctx = document.getElementById('dailyChart');
+                
+                if (dailyChart) {
+                    dailyChart.destroy();
+                }
+
+                dailyChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Plays',
+                            data: values,
+                            borderColor: 'rgba(102, 126, 234, 1)',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            pointBackgroundColor: 'rgba(102, 126, 234, 1)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                                padding: 12,
+                                titleFont: { size: 14 },
+                                bodyFont: { size: 13 }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: 'rgba(0, 0, 0, 0.05)'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        async function loadTopTracks() {
+            const data = await fetchAPI('top-tracks?limit=10');
+            const tbody = document.getElementById('topTracksTable');
+            
+            if (data && data.length > 0) {
+                tbody.innerHTML = data.map((track, index) => `
+                    <tr>
+                        <td><span class="rank">${index + 1}</span></td>
+                        <td><strong>${track.title}</strong></td>
+                        <td>${track.duration}</td>
+                        <td><strong>${track.play_count.toLocaleString()}</strong> plays</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">No data available</td></tr>';
+            }
+        }
+
+        async function loadTopUsers() {
+            const data = await fetchAPI('top-users?limit=10');
+            const tbody = document.getElementById('topUsersTable');
+            
+            if (data && data.length > 0) {
+                tbody.innerHTML = data.map((user, index) => `
+                    <tr>
+                        <td><span class="rank">${index + 1}</span></td>
+                        <td><strong>${user.username}</strong></td>
+                        <td><code>${user.user_id}</code></td>
+                        <td><strong>${user.play_count.toLocaleString()}</strong> plays</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #999;">No data available</td></tr>';
+            }
+        }
+
+        async function loadTopChats() {
+            const data = await fetchAPI('top-chats?limit=10');
+            const tbody = document.getElementById('topChatsTable');
+            
+            if (data && data.length > 0) {
+                tbody.innerHTML = data.map((chat, index) => `
+                    <tr>
+                        <td><span class="rank">${index + 1}</span></td>
+                        <td><strong>${chat.chat_name}</strong></td>
+                        <td><strong>${chat.play_count.toLocaleString()}</strong> plays</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999;">No data available</td></tr>';
+            }
+        }
+
+        async function loadAllData() {
+            const btn = document.querySelector('.refresh-btn');
+            btn.classList.add('spinning');
+            
+            await Promise.all([
+                loadOverview(),
+                loadDailyStats(),
+                loadTopTracks(),
+                loadTopUsers(),
+                loadTopChats()
+            ]);
+            
+            btn.classList.remove('spinning');
+        }
+
+        // Load data on page load
+        loadAllData();
+
+        // Auto-refresh every 30 seconds
+        setInterval(loadAllData, 30000);
+    </script>
+</body>
+</html>
