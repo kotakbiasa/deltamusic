@@ -11,7 +11,7 @@ from pyrogram import filters, types
 from anony import app, config, logger
 
 
-@app.on_message(filters.command(["dashboard"]) & filters.user(app.sudo_users))
+@app.on_message(filters.command(["dashboard"]) & filters.user(app.sudoers))
 async def dashboard_command(_, message: types.Message):
     """
     Dashboard management (Admin only)

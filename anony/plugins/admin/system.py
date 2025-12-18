@@ -16,7 +16,7 @@ from anony import app, config, logger
 from anony.helpers._graceful import graceful_handler, safe_restart, with_flood_wait_handler
 
 
-@app.on_message(filters.command(["restart", "reboot"]) & filters.user(app.sudo_users))
+@app.on_message(filters.command(["restart", "reboot"]) & filters.user(app.sudoers))
 async def restart_handler(_, message: types.Message):
     """
     Restart bot dengan aman (Admin only)
@@ -72,7 +72,7 @@ async def shutdown_handler(_, message: types.Message):
     await graceful_handler.shutdown()
 
 
-@app.on_message(filters.command(["status", "health"]) & filters.user(app.sudo_users))
+@app.on_message(filters.command(["status", "health"]) & filters.user(app.sudoers))
 @with_flood_wait_handler(max_retries=2)
 async def status_handler(_, message: types.Message):
     """
