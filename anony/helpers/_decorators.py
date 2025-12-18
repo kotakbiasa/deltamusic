@@ -7,6 +7,8 @@ from collections import defaultdict
 from functools import wraps
 from time import time
 
+from pyrogram import enums
+
 # Use direct logging to avoid circular import
 logger = logging.getLogger(__name__)
 
@@ -111,7 +113,7 @@ def safe_execute(send_error: bool = True):
                             f"❌ <b>Terjadi Kesalahan</b>\n\n"
                             f"<blockquote>Maaf, terjadi error saat memproses perintah Anda. "
                             f"Silakan coba lagi atau hubungi admin jika masalah berlanjut.</blockquote>",
-                            parse_mode="HTML"
+                            parse_mode=enums.ParseMode.HTML
                         )
                     except:
                         pass
@@ -138,7 +140,7 @@ def require_rate_limit(limiter: RateLimiter):
                     f"⏱️ <b>Rate Limit Exceeded</b>\n\n"
                     f"<blockquote>Anda terlalu banyak mengirim perintah. "
                     f"Silakan tunggu <b>{retry_after} detik</b> sebelum mencoba lagi.</blockquote>",
-                    parse_mode="HTML"
+                    parse_mode=enums.ParseMode.HTML
                 )
             
             return await func(client, message, *args, **kwargs)

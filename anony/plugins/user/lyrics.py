@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 # This file is part of AnonXMusic
 
-from pyrogram import filters, types
+from pyrogram import enums, filters, types
 
 from anony import app, config, queue
 from anony.helpers._decorators import command_limiter, require_rate_limit, safe_execute
@@ -34,7 +34,7 @@ async def lyrics_handler(_, message: types.Message):
         /lyrics - Get lyrics for current song
         /lyrics <query> - Search lyrics for specific song
     """
-    sent = await message.reply_text("🔎 <b>Mencari lirik...</b>", parse_mode="HTML")
+    sent = await message.reply_text("🔎 <b>Mencari lirik...</b>", parse_mode=enums.ParseMode.HTML)
     
     # Determine what song to search for
     if len(message.command) > 1:
@@ -47,7 +47,7 @@ async def lyrics_handler(_, message: types.Message):
             return await sent.edit_text(
                 "❌ <b>Tidak ada lagu yang sedang diputar</b>\n\n"
                 "<blockquote>Gunakan <code>/lyrics [nama lagu]</code> untuk mencari lirik lagu tertentu.</blockquote>",
-                parse_mode="HTML"
+                parse_mode=enums.ParseMode.HTML
             )
         query = current.title
     
@@ -62,7 +62,7 @@ async def lyrics_handler(_, message: types.Message):
             f"• Pastikan ejaan nama lagu benar\n"
             f"• Coba sertakan nama artis\n"
             f"• Gunakan format: /lyrics Artist - Song</blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )
     
     # Format and send lyrics
@@ -70,7 +70,7 @@ async def lyrics_handler(_, message: types.Message):
     
     await sent.edit_text(
         formatted_lyrics,
-        parse_mode="HTML",
+        parse_mode=enums.ParseMode.HTML,
         disable_web_page_preview=True
     )
 
@@ -97,7 +97,7 @@ async def cache_stats_handler(_, message: types.Message):
         await message.reply_text(
             "✅ <b>Cache Cleared</b>\n\n"
             "<blockquote>Semua file cache telah dihapus.</blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )
         return
     
@@ -109,5 +109,5 @@ async def cache_stats_handler(_, message: types.Message):
         f"📂 <b>Path:</b> <code>{stats['path']}</code>\n\n"
         f"💡 <b>Tip:</b> Gunakan /cache clear untuk menghapus semua cache"
         f"</blockquote>",
-        parse_mode="HTML"
+        parse_mode=enums.ParseMode.HTML
     )

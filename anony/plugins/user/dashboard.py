@@ -6,7 +6,7 @@
 Dashboard Admin Commands - Control dashboard from Telegram
 """
 
-from pyrogram import filters, types
+from pyrogram import enums, filters, types
 
 from anony import app, config, logger
 
@@ -49,7 +49,7 @@ async def dashboard_command(_, message: types.Message):
             f"• Daily play counts\n"
             f"• Group rankings"
             f"</blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )
         return
     
@@ -61,7 +61,7 @@ async def dashboard_command(_, message: types.Message):
             f"<blockquote>Please start the dashboard manually using:\n"
             f"<code>python -m dashboard.server</code>\n\n"
             f"Or use: <code>python dashboard/server.py</code></blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )
     
     elif command == "stop":
@@ -69,14 +69,14 @@ async def dashboard_command(_, message: types.Message):
             f"📊 <b>Dashboard Server</b>\n\n"
             f"<blockquote>To stop the dashboard, press Ctrl+C in the terminal "
             f"where it's running.</blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )
     
     else:
         await message.reply_text(
             f"❌ <b>Invalid Command</b>\n\n"
             f"<blockquote>Use: <code>/dashboard start</code> or <code>/dashboard stop</code></blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )
 
 
@@ -91,7 +91,7 @@ async def group_stats_command(_, message: types.Message):
     
     chat_id = message.chat.id
     
-    sent = await message.reply_text("📊 <b>Mengambil statistik...</b>", parse_mode="HTML")
+    sent = await message.reply_text("📊 <b>Mengambil statistik...</b>", parse_mode=enums.ParseMode.HTML)
     
     try:
         # Get group stats
@@ -122,7 +122,7 @@ async def group_stats_command(_, message: types.Message):
             f"<b>🏆 Top Tracks:</b>\n{tracks_text}\n\n"
             f"<b>👤 Most Active Users:</b>\n{users_text}"
             f"</blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )
         
     except Exception as e:
@@ -130,5 +130,5 @@ async def group_stats_command(_, message: types.Message):
         await sent.edit_text(
             f"❌ <b>Gagal Mengambil Statistik</b>\n\n"
             f"<blockquote>Error: {str(e)}</blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )

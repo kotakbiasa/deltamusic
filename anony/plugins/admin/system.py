@@ -10,7 +10,7 @@ import os
 import sys
 from datetime import datetime
 
-from pyrogram import filters, types
+from pyrogram import enums, filters, types
 
 from anony import app, config, logger
 from anony.helpers._graceful import graceful_handler, safe_restart, with_flood_wait_handler
@@ -36,7 +36,7 @@ async def restart_handler(_, message: types.Message):
     sent = await message.reply_text(
         "🔄 <b>Restarting Bot...</b>\n\n"
         "<blockquote>Mohon tunggu sebentar...</blockquote>",
-        parse_mode="HTML"
+        parse_mode=enums.ParseMode.HTML
     )
     
     logger.info(f"🔄 Restart initiated by {message.from_user.id}")
@@ -47,7 +47,7 @@ async def restart_handler(_, message: types.Message):
             "🔄 <b>Restarting Bot...</b>\n\n"
             "<blockquote>✅ Stopping services...\n"
             "⏳ Bot will be back in ~10 seconds</blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )
         
         # Perform safe restart
@@ -59,7 +59,7 @@ async def restart_handler(_, message: types.Message):
             f"❌ <b>Restart Failed</b>\n\n"
             f"<blockquote>Error: {str(e)}\n\n"
             f"Manual restart required.</blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )
 
 
@@ -73,7 +73,7 @@ async def shutdown_handler(_, message: types.Message):
     await message.reply_text(
         "🛑 <b>Shutting Down Bot...</b>\n\n"
         "<blockquote>Goodbye! 👋</blockquote>",
-        parse_mode="HTML"
+        parse_mode=enums.ParseMode.HTML
     )
     
     logger.info(f"🛑 Shutdown initiated by {message.from_user.id}")
@@ -130,7 +130,7 @@ async def status_handler(_, message: types.Message):
         f"</blockquote>"
     )
     
-    await message.reply_text(status_text, parse_mode="HTML")
+    await message.reply_text(status_text, parse_mode=enums.ParseMode.HTML)
 
 
 @app.on_message(filters.command(["logs"]) & filters.user(config.OWNER_ID))
@@ -166,7 +166,7 @@ async def logs_handler(_, message: types.Message):
             await message.reply_document(
                 document="recent_logs.txt",
                 caption=f"📄 <b>Recent Logs</b> (Last {num_lines} lines)",
-                parse_mode="HTML"
+                parse_mode=enums.ParseMode.HTML
             )
             
             os.remove("recent_logs.txt")
@@ -174,14 +174,14 @@ async def logs_handler(_, message: types.Message):
             await message.reply_text(
                 f"📄 <b>Recent Logs</b> (Last {num_lines} lines)\n\n"
                 f"<code>{recent_logs}</code>",
-                parse_mode="HTML"
+                parse_mode=enums.ParseMode.HTML
             )
     
     except Exception as e:
         await message.reply_text(
             f"❌ <b>Error Reading Logs</b>\n\n"
             f"<blockquote>{str(e)}</blockquote>",
-            parse_mode="HTML"
+            parse_mode=enums.ParseMode.HTML
         )
 
 
@@ -204,5 +204,5 @@ async def ping_handler(_, message: types.Message):
     await sent.edit_text(
         f"🏓 <b>Pong!</b>\n\n"
         f"<blockquote>⚡ Response Time: <b>{ms:.2f}ms</b></blockquote>",
-        parse_mode="HTML"
+        parse_mode=enums.ParseMode.HTML
     )

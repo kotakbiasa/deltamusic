@@ -19,7 +19,7 @@ async def shuffle_command(_, message: types.Message):
     if not await db.get_call(message.chat.id):
         sent = await message.reply_text(
             "❌ <b>Tidak ada streaming</b>\n\n<blockquote>Gunakan /play untuk mulai memutar musik</blockquote>",
-            parse_mode="html"
+            parse_mode=enums.ParseMode.HTML
         )
         await utils.auto_delete(sent)
         return
@@ -28,7 +28,7 @@ async def shuffle_command(_, message: types.Message):
     if len(items) <= 1:
         sent = await message.reply_text(
             "❌ <b>Antrian terlalu sedikit</b>\n\n<blockquote>Minimal harus ada 2 lagu untuk di-shuffle</blockquote>",
-            parse_mode="html"
+            parse_mode=enums.ParseMode.HTML
         )
         await utils.auto_delete(sent)
         return
@@ -39,12 +39,12 @@ async def shuffle_command(_, message: types.Message):
     if success:
         sent = await message.reply_text(
             f"🔀 <b>Queue Di-Shuffle!</b>\n\n<blockquote>{len(items) - 1} lagu telah diacak</blockquote>",
-            parse_mode="html"
+            parse_mode=enums.ParseMode.HTML
         )
     else:
         sent = await message.reply_text(
             "❌ <b>Gagal shuffle</b>\n\n<blockquote>Terjadi kesalahan saat meng-shuffle queue</blockquote>",
-            parse_mode="html"
+            parse_mode=enums.ParseMode.HTML
         )
     
     await utils.auto_delete(sent)
