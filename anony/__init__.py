@@ -50,16 +50,17 @@ from anony.core.youtube import YouTube
 tg = Telegram()
 yt = YouTube()
 
-# Import Queue directly to avoid any circular import issues
-from anony.helpers._queue import Queue as QueueClass
-queue = QueueClass()
+# Import Queue directly - NO DEPENDENCY on anony package
+from anony.helpers._queue import Queue
+queue = Queue()
 
 from anony.core.calls import TgCall
 anon = TgCall()
 
-# Import utilities with lazy loading to avoid circular imports
-from anony.helpers._cleanup import cleanup
-from anony.helpers._lyrics import lyrics_searcher
+
+# These are initialized lazily in __main__.py to avoid circular imports
+# cleanup = None
+# lyrics_searcher = None
 
 
 async def stop() -> None:
@@ -74,6 +75,5 @@ async def stop() -> None:
     await app.exit()
     await userbot.exit()
     await db.close()
-    await lyrics_searcher.close()
 
     logger.info("Stopped.\n")

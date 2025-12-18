@@ -9,16 +9,12 @@ import importlib
 from pyrogram import idle
 
 from anony import (anon, app, config, db,
-                   logger, stop, userbot, yt)
+                   logger, stop, userbot, yt, tasks)
 from anony.plugins import all_modules
 
 
 async def main():
     await db.connect()
-    
-    # Setup graceful shutdown handlers
-    from anony.helpers._graceful import graceful_handler
-    graceful_handler.setup_signal_handlers()
     
     # Startup banner
     logger.info("🎵 ═══════════ DELTA MUSIC BOT v3.0.1 ═══════════ 🎵")
@@ -40,8 +36,8 @@ async def main():
     app.bl_users.update(await db.get_blacklisted())
     logger.info(f"👥 Loaded {len(app.sudoers)} sudo users.")
     
-    # Start cleanup scheduler
-    from anony import cleanup, tasks
+    # Start cleanup scheduler (import directly to avoid circular import)
+    from anony.helpers._cleanup import cleanup
     cleanup_task = asyncio.create_task(cleanup.start())
     tasks.append(cleanup_task)
     logger.info("🧹 File cleanup scheduler started")
