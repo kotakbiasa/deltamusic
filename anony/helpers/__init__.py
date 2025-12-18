@@ -14,6 +14,7 @@ from anony.helpers._queue import Queue
 # Import classes/functions that use lazy imports internally
 from anony.helpers._admins import admin_check, can_manage_vc, is_admin, reload_admins
 from anony.helpers._inline import Inline
+from anony.helpers._thumbnails import Thumbnail, thumb
 from anony.helpers._utilities import Utilities
 
 # Create singleton instances
@@ -35,7 +36,9 @@ __all__ = [
     # Instances
     "buttons",
     "utils",
+    "thumb",
     # Classes
     "Inline",
     "Utilities",
+    "Thumbnail",
 ]

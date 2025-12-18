@@ -8,8 +8,7 @@ import aiohttp
 from PIL import (Image, ImageDraw, ImageEnhance,
                  ImageFilter, ImageFont, ImageOps)
 
-from anony import config
-from anony.helpers import Track
+# Note: config and Track are imported lazily to avoid circular imports
 
 
 class Thumbnail:
@@ -26,7 +25,9 @@ class Thumbnail:
                 open(output_path, "wb").write(await resp.read())
             return output_path
 
-    async def generate(self, song: Track, size=(1280, 720)) -> str:
+    async def generate(self, song, size=(1280, 720)) -> str:
+        from anony import config
+        
         try:
             temp = f"cache/temp_{song.id}.jpg"
             output = f"cache/{song.id}.png"
@@ -54,4 +55,8 @@ class Thumbnail:
             os.remove(temp)
             return output
         except:
-            config.DEFAULT_THUMB
+            return config.DEFAULT_THUMB
+
+
+# Singleton instance
+thumb = Thumbnail()
