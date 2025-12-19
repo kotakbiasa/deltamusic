@@ -79,7 +79,7 @@ async def song_command(_, message: types.Message):
         
         if not os.path.exists(file_path):
             return await mystic.edit_text(
-                f"❌ <b>Gagal Mengunduh</b>\n\n<blockquote>Silakan lapor ke <a href='{config.SUPPORT_CHANNEL}'>chat dukungan</a></blockquote>",
+                f"❌ <b>Gagal Mengunduh</b>\n\n<blockquote>Silakan lapor ke <a href='tg://user?id={config.OWNER_ID}'>owner</a></blockquote>",
                 parse_mode=enums.ParseMode.HTML
             )
         

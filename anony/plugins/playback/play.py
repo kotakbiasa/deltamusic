@@ -93,7 +93,7 @@ async def play_hndlr(
 
         if not file:
             await sent.edit_text(
-                f"❌ <b>Gagal Memproses</b>\n\n<blockquote>Jika masalah berlanjut, laporkan ke <a href={config.SUPPORT_CHANNEL}>chat dukungan</a></blockquote>",
+                f"❌ <b>Gagal Memproses</b>\n\n<blockquote>Jika masalah berlanjut, laporkan ke <a href='tg://user?id={config.OWNER_ID}'>owner</a></blockquote>",
                 parse_mode=enums.ParseMode.HTML
             )
             await utils.auto_delete(sent)

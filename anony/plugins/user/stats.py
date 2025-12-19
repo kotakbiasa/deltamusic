@@ -125,7 +125,7 @@ async def get_stats_callback(_, query: types.CallbackQuery):
             rank_icon = utils.get_medal(limit)
             
             if track_id == "telegram":
-                msg += f"{rank_icon} <a href='https://t.me/{config.SUPPORT_CHANNEL}'>Telegram Media</a> • <b>{utils.format_number(count)} plays</b>\n"
+                msg += f"{rank_icon} <a href='tg://user?id={config.OWNER_ID}'>Telegram Media</a> • <b>{utils.format_number(count)} plays</b>\n"
             else:
                 msg += f"{rank_icon} <a href='https://www.youtube.com/watch?v={track_id}'>{title}</a> • <b>{utils.format_number(count)} plays</b>\n"
         

@@ -123,7 +123,7 @@ class Inline:
 
     def ping_markup(self, text: str) -> types.InlineKeyboardMarkup:
         from anony import config
-        return self.ikm([[self.ikb(text=text, url=config.SUPPORT_CHANNEL)]])
+        return self.ikm([[self.ikb(text=text, url=f"tg://user?id={config.OWNER_ID}")]])
 
     def play_queued(
         self, chat_id: int, item_id: str, _text: str
@@ -257,7 +257,7 @@ class Inline:
             ],
             [self.ikb(text="❓ Bantuan", callback_data="help")],
             [
-                self.ikb(text="📢 Channel", url=config.SUPPORT_CHANNEL),
+                self.ikb(text="Owner", url=f"tg://user?id={config.OWNER_ID}"),
                 self.ikb(text="💰 Donate", callback_data="donate"),
             ],
         ]

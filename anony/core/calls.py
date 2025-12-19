@@ -75,7 +75,7 @@ class TgCall(PyTgCalls):
         )
 
         if not media.file_path:
-            return await message.edit_text(f"File tidak ditemukan. Hubungi @{config.SUPPORT_CHANNEL}")
+            return await message.edit_text(f"File tidak ditemukan. Hubungi <a href='tg://user?id={config.OWNER_ID}'>owner</a>", parse_mode='HTML')
 
         stream = types.MediaStream(
             media_path=media.file_path,
@@ -137,7 +137,7 @@ class TgCall(PyTgCalls):
                         reply_markup=keyboard,
                     )).id
         except FileNotFoundError:
-            await message.edit_text(f"File tidak ditemukan. Hubungi @{config.SUPPORT_CHANNEL}")
+            await message.edit_text(f"File tidak ditemukan. Hubungi <a href='tg://user?id={config.OWNER_ID}'>owner</a>", parse_mode='HTML')
             await self.play_next(chat_id)
         except exceptions.NoActiveGroupCall:
             await self.stop(chat_id)
@@ -206,7 +206,8 @@ class TgCall(PyTgCalls):
             if not media.file_path:
                 await self.stop(chat_id)
                 return await msg.edit_text(
-                    f"File tidak ditemukan. Hubungi @{config.SUPPORT_CHANNEL}"
+                    f"File tidak ditemukan. Hubungi <a href='tg://user?id={config.OWNER_ID}'>owner</a>",
+                    parse_mode='HTML'
                 )
 
         media.message_id = msg.id
