@@ -111,6 +111,7 @@ class Inline:
                 ("queue", "help_6", "📝 Queue"),
                 ("stats", "help_7", "📊 Stats"),
                 ("sudo", "help_8", "⚙️ Sudoers"),
+                ("drama", "help_9", "🎬 Drama"),
             ]
             buttons = [
                 self.ikb(text=label, callback_data=f"help {cb}")
