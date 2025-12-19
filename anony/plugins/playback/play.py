@@ -46,7 +46,7 @@ async def play_hndlr(
     if config.AUTO_DELETE_COMMANDS:
         await utils.auto_delete(m)
     
-    sent = await m.reply_text("🔎 <b>Mencari...</b>", parse_mode=enums.ParseMode.HTML)
+    sent = await m.reply_text("🔎", parse_mode=enums.ParseMode.HTML)
     file = None
     mention = m.from_user.mention
     media = tg.get_media(m.reply_to_message) if m.reply_to_message else None
@@ -147,7 +147,7 @@ async def play_hndlr(
         if Path(fname).exists():
             file.file_path = fname
         else:
-            await sent.edit_text("⬇️ <b>Mengunduh audio...</b>", parse_mode=enums.ParseMode.HTML)
+            await sent.edit_text("⏳ <b>Sedang memproses, harap tunggu...</b>", parse_mode=enums.ParseMode.HTML)
             file.file_path = await yt.download(file.id, video=video)
 
     await anon.play_media(chat_id=m.chat.id, message=sent, media=file)
