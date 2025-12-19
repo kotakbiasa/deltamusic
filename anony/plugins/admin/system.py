@@ -173,7 +173,7 @@ async def logs_handler(_, message: types.Message):
         else:
             await message.reply_text(
                 f"📄 <b>Recent Logs</b> (Last {num_lines} lines)\n\n"
-                f"<code>{recent_logs}</code>",
+                f"<pre>{recent_logs}</pre>",
                 parse_mode=enums.ParseMode.HTML
             )
     

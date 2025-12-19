@@ -64,18 +64,12 @@ async def start(_, message: types.Message):
         await db.add_chat(message.chat.id)
 
 
-@app.on_message(filters.command(["playmode", "settings"]) & filters.group & ~app.bl_users)
-async def settings(_, message: types.Message):
-    admin_only = await db.get_play_mode(message.chat.id)
-    cmd_delete = await db.get_cmd_delete(message.chat.id)
-    
+@app.on_message(filters.command(["playmode"]) & filters.group & ~app.bl_users)
+async def playmode_redirect(_, message: types.Message):
+    """Redirect to /settings for backward compatibility."""
     await message.reply_text(
-        text=f"⚙️ <b>Pengaturan {message.chat.title}</b>\n\n<blockquote>Klik tombol di bawah untuk mengubah pengaturan chat ini.</blockquote>",
+        "ℹ️ <b>Perintah Dipindahkan</b>\n\n<blockquote>Gunakan /settings untuk mengakses pengaturan player.</blockquote>",
         parse_mode=enums.ParseMode.HTML,
-        reply_markup=buttons.settings_markup(
-            {}, admin_only, cmd_delete, message.chat.id
-        ),
-        quote=True,
     )
 
 

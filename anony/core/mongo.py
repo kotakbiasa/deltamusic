@@ -504,6 +504,49 @@ class MongoDB:
         doc = await self.queriesdb.find_one({"_id": "total_queries"})
         return doc.get("count", 0) if doc else 0
 
+    # USER PLAYLIST METHODS
+    async def add_to_playlist(self, user_id: int, track_id: str, title: str, duration: str, url: str) -> bool:
+        """Add a track to user's playlist. Returns True if added, False if already exists."""
+        # Check if track already in playlist
+        existing = await self.usersdb.find_one({
+            "_id": user_id,
+            "playlist.track_id": track_id
+        })
+        if existing:
+            return False
+        
+        await self.usersdb.update_one(
+            {"_id": user_id},
+            {"$push": {"playlist": {
+                "track_id": track_id,
+                "title": title,
+                "duration": duration,
+                "url": url
+            }}},
+            upsert=True
+        )
+        return True
+
+    async def get_playlist(self, user_id: int) -> list:
+        """Get user's playlist."""
+        doc = await self.usersdb.find_one({"_id": user_id})
+        return doc.get("playlist", []) if doc else []
+
+    async def remove_from_playlist(self, user_id: int, track_id: str) -> bool:
+        """Remove a track from user's playlist."""
+        result = await self.usersdb.update_one(
+            {"_id": user_id},
+            {"$pull": {"playlist": {"track_id": track_id}}}
+        )
+        return result.modified_count > 0
+
+    async def clear_playlist(self, user_id: int) -> None:
+        """Clear user's entire playlist."""
+        await self.usersdb.update_one(
+            {"_id": user_id},
+            {"$set": {"playlist": []}}
+        )
+
 
     async def migrate_coll(self) -> None:
         from bson import ObjectId

@@ -9,7 +9,7 @@ from anony import app, config, db
 from anony.helpers import buttons
 
 
-@app.on_message(filters.command(["player"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["settings"]) & filters.group & ~app.bl_users)
 async def player_settings(_, message: types.Message):
     """Display player settings panel."""
     chat_id = message.chat.id
