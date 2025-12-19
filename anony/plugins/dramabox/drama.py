@@ -229,6 +229,19 @@ async def drama_info_callback(_, callback: types.CallbackQuery):
     
     keyboard = create_episode_keyboard(episodes, book_id)
     
+    if drama and drama.cover:
+        try:
+            await callback.message.delete()
+            await callback.message.reply_photo(
+                photo=drama.cover,
+                caption=text,
+                parse_mode=enums.ParseMode.HTML,
+                reply_markup=keyboard
+            )
+            return
+        except:
+            pass
+            
     await callback.message.edit_text(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
 
 
@@ -276,7 +289,10 @@ async def drama_episode_callback(_, callback: types.CallbackQuery):
     
     keyboard = create_quality_keyboard(episode, book_id)
     
-    await callback.message.edit_text(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
+    if callback.message.photo:
+        await callback.message.edit_caption(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
+    else:
+        await callback.message.edit_text(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
 
 
 @app.on_callback_query(filters.regex(r"^drama_play:"))
@@ -310,7 +326,10 @@ async def drama_play_callback(_, callback: types.CallbackQuery):
         [types.InlineKeyboardButton("◀️ Kembali", callback_data=f"drama_ep:{book_id}:{ep_index}")]
     ])
     
-    await callback.message.edit_text(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
+    if callback.message.photo:
+        await callback.message.edit_caption(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
+    else:
+        await callback.message.edit_text(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
 
 
 @app.on_callback_query(filters.regex(r"^drama_stream:"))
@@ -380,7 +399,10 @@ async def drama_back_callback(_, callback: types.CallbackQuery):
     text = f"📺 <b>Pilih Episode:</b> (Total: {len(episodes)})"
     keyboard = create_episode_keyboard(episodes, book_id)
     
-    await callback.message.edit_text(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
+    if callback.message.photo:
+        await callback.message.edit_caption(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
+    else:
+        await callback.message.edit_text(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
 
 
 @app.on_callback_query(filters.regex(r"^drama_close$"))
