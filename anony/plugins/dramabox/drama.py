@@ -10,7 +10,7 @@ Command untuk mengakses konten DramaBox dari Telegram.
 
 from pyrogram import enums, filters, types
 from anony import app, anon, db, queue
-from anony.helpers import Media
+from anony.helpers import Media, admin_check
 from .api import dramabox, Drama, Episode
 
 
@@ -139,6 +139,11 @@ def create_drama_results_keyboard(dramas: list[Drama]) -> types.InlineKeyboardMa
 async def drama_command(_, message: types.Message):
     """Mencari drama atau menampilkan trending jika tanpa query."""
     
+    # Check Admin Only Mode
+    if await db.get_drama_mode(message.chat.id):
+        if not await admin_check(message):
+            return await message.reply_text("❌ <b>Maaf, fitur ini khusus Admin di grup ini.</b>", parse_mode=enums.ParseMode.HTML)
+    
     if len(message.command) < 2:
         # Tampilkan trending
         mystic = await message.reply_text("⏳ <b>Memuat drama trending...</b>", parse_mode=enums.ParseMode.HTML)
@@ -172,6 +177,12 @@ async def drama_command(_, message: types.Message):
 @app.on_message(filters.command(["dramatrending", "dt"]) & ~app.bl_users)
 async def drama_trending_command(_, message: types.Message):
     """Menampilkan drama trending."""
+    
+    # Check Admin Only Mode
+    if await db.get_drama_mode(message.chat.id):
+        if not await admin_check(message):
+            return await message.reply_text("❌ <b>Maaf, fitur ini khusus Admin di grup ini.</b>", parse_mode=enums.ParseMode.HTML)
+            
     mystic = await message.reply_text("⏳ <b>Memuat drama trending...</b>", parse_mode=enums.ParseMode.HTML)
     
     dramas = await dramabox.get_trending()
@@ -187,6 +198,12 @@ async def drama_trending_command(_, message: types.Message):
 @app.on_message(filters.command(["dramaterbaru", "dn"]) & ~app.bl_users)
 async def drama_latest_command(_, message: types.Message):
     """Menampilkan drama terbaru."""
+    
+    # Check Admin Only Mode
+    if await db.get_drama_mode(message.chat.id):
+        if not await admin_check(message):
+            return await message.reply_text("❌ <b>Maaf, fitur ini khusus Admin di grup ini.</b>", parse_mode=enums.ParseMode.HTML)
+            
     mystic = await message.reply_text("⏳ <b>Memuat drama terbaru...</b>", parse_mode=enums.ParseMode.HTML)
     
     dramas = await dramabox.get_latest()
@@ -321,8 +338,8 @@ async def drama_play_callback(_, callback: types.CallbackQuery):
     text += f"Klik tombol di bawah untuk menonton.</blockquote>"
     
     keyboard = types.InlineKeyboardMarkup([
-        [types.InlineKeyboardButton("▶️ Tonton Sekarang", url=video_url)],
-        [types.InlineKeyboardButton("🎵 Stream di Voice Chat", callback_data=f"drama_stream:{book_id}:{ep_index}:{quality}")],
+        [types.InlineKeyboardButton("▶️ Putar", callback_data=f"drama_stream:{book_id}:{ep_index}:{quality}")],
+        [types.InlineKeyboardButton("🌐 Nonton di Browser", url=video_url)],
         [types.InlineKeyboardButton("◀️ Kembali", callback_data=f"drama_ep:{book_id}:{ep_index}")]
     ])
     

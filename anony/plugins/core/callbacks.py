@@ -117,6 +117,68 @@ async def _controls(_, query: types.CallbackQuery):
         status = "Streaming diputar ulang"
         reply = f"{user} memutar ulang streaming."
 
+    elif action == "page":
+        # Handle queue pagination
+        page = int(args[3])
+        
+        # Re-fetch items
+        items = queue.get_queue(chat_id)
+        total_items = len(items)
+        page_size = 20
+        total_pages = (total_items + page_size - 1) // page_size
+        
+        # Ensure page is valid
+        page = max(0, min(page, total_pages - 1))
+        
+        start_idx = page * page_size
+        end_idx = start_idx + page_size
+        current_items = items[start_idx:end_idx]
+        
+        # Calculate total duration
+        total_seconds = sum(item.duration_sec for item in items if hasattr(item, 'duration_sec'))
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        
+        if hours > 0:
+            total_duration = f"{hours}:{minutes:02d}:00"
+        else:
+            total_duration = f"{minutes}:00"
+            
+        # Build text
+        text = f"📋 <b>Antrian Musik</b>\n\n"
+        text += f"<b>Total:</b> {total_items} lagu • ⏱ {total_duration}\n\n"
+        text += "<blockquote>"
+        
+        # Emoji numbers for first 10 items of the FIRST page only
+        emoji_numbers = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+        
+        for i, item in enumerate(current_items, start=start_idx + 1):
+            media_icon = "🎬" if item.video else "🎵"
+            if i <= 10:
+                num = emoji_numbers[i-1]
+            else:
+                num = f"{i}."
+            text += f"{num} {media_icon} {item.title}\n"
+        
+        text += "</blockquote>"
+        
+        # Show remaining count if not on last page
+        remaining = total_items - end_idx
+        if remaining > 0:
+            text += f"\n\n➕ <i>... dan {remaining} lagu lagi</i>"
+            
+        return await query.edit_message_text(
+            text,
+            parse_mode=enums.ParseMode.HTML,
+            reply_markup=buttons.queue_markup(
+                chat_id,
+                "Sedang memutar" if await db.playing(chat_id) else "Streaming dijeda",
+                await db.playing(chat_id),
+                page,
+                total_pages
+            )
+        )
+
 
 
 
@@ -174,7 +236,7 @@ async def _help(_, query: types.CallbackQuery):
         "queue": "<u><b>Perintah queue:</b></u>\n\n/queue: Menampilkan track yang sedang dalam antrian.",
         "stats": "<u><b>Perintah stats:</b></u>\n\n/stats: Menampilkan statistik bot.",
         "sudo": "<b><u>Perintah sudo:</b></u>\n\n/ac: Menampilkan jumlah panggilan aktif.\n\n/activevc: Menampilkan daftar panggilan aktif.\n\n/broadcast [balas ke pesan]: Broadcast pesan ke semua chat.\n-nochat: Kecualikan grup dari broadcast.\n-user: Sertakan pengguna dalam broadcast.\n-copy: Hapus tag forwarded dari pesan broadcast.\n<b>Contoh:</b> <code>/broadcast -user -copy</code>\n\n/eval: Jalankan kode yang diberikan.\n\n/logs: Kirim file log.\n\n/logger [on|off]: Aktifkan/nonaktifkan logger.\n\n/restart: Restart bot.\n\n/addsudo: Tambahkan pengguna ke daftar sudo.\n/rmsudo: Hapus pengguna dari daftar sudo.",
-        "drama": "<u><b>🎬 DramaBox:</b></u>\n<i>Nonton drama pendek dari DramaBox langsung di Telegram!</i>\n\n/drama [judul]: Cari drama berdasarkan judul.\n/drama: Tampilkan drama trending.\n/dramatrending atau /dt: Drama populer.\n/dramaterbaru atau /dn: Drama terbaru.\n\n<b>Fitur:</b>\n• Pilih episode langsung dari bot\n• Pilih kualitas video (144p - 1080p)\n• Link streaming langsung ke browser"
+        "drama": "<u><b>🎬 DramaBox:</b></u>\n<i>Nonton drama pendek dari DramaBox langsung di Telegram!</i>\n\n/drama [judul]: Cari drama berdasarkan judul.\n/drama: Tampilkan drama trending.\n/dramatrending atau /dt: Drama populer.\n/dramaterbaru atau /dn: Drama terbaru.\n\n<b>Fitur:</b>\n• Pilih episode langsung dari bot\n• Pilih kualitas video (144p - 1080p)\n• Streaming di Voice Chat Grup\n• Link streaming langsung ke browser\n\n⚠️ <b>Pengaturan:</b>\nAdmin dapat membatasi akses fitur ini melalui /settings."
     }
     
     await query.edit_message_text(
@@ -243,6 +305,7 @@ async def _player_settings_cb(_, query: types.CallbackQuery):
     admin_only = await db.get_play_mode(chat_id)
     cmd_delete = await db.get_cmd_delete(chat_id)
     video_mode = await db.get_video_mode(chat_id)
+    drama_mode = await db.get_drama_mode(chat_id)
 
     if cmd[1] == "loop":
         # Cycle through loop modes
@@ -254,6 +317,9 @@ async def _player_settings_cb(_, query: types.CallbackQuery):
     elif cmd[1] == "video":
         video_mode = not video_mode
         await db.set_video_mode(chat_id, video_mode)
+    elif cmd[1] == "drama":
+        drama_mode = not drama_mode
+        await db.set_drama_mode(chat_id, drama_mode)
     elif cmd[1] == "admin":
         admin_only = not admin_only
         await db.set_play_mode(chat_id, not admin_only)
@@ -292,13 +358,14 @@ async def _player_settings_cb(_, query: types.CallbackQuery):
 📹 <b>Video Mode:</b> {'✅ Aktif' if video_mode else '❌ Nonaktif'}
 🎬 <b>Kualitas:</b> 📺 {video_quality}
 👮 <b>Admin Only:</b> {'✅ Aktif' if admin_only else '❌ Nonaktif'}
-🗑 <b>Auto Delete:</b> {'✅ Aktif' if cmd_delete else '❌ Nonaktif'}</blockquote>
+🗑 <b>Auto Delete:</b> {'✅ Aktif' if cmd_delete else '❌ Nonaktif'}
+🎭 <b>Drama (Admin):</b> {'✅ Aktif' if drama_mode else '❌ Nonaktif'}</blockquote>
 
 <i>Klik tombol di bawah untuk mengubah pengaturan</i>"""
     
     await query.edit_message_text(
         text,
         parse_mode=enums.ParseMode.HTML,
-        reply_markup=buttons.player_settings_markup(loop_mode, admin_only, cmd_delete, video_mode, video_quality, chat_id)
+        reply_markup=buttons.player_settings_markup(loop_mode, admin_only, cmd_delete, video_mode, video_quality, drama_mode, chat_id)
     )
 

@@ -139,12 +139,27 @@ class Inline:
         )
 
     def queue_markup(
-        self, chat_id: int, _text: str, playing: bool
+        self, chat_id: int, _text: str, playing: bool, page: int = 0, total_pages: int = 1
     ) -> types.InlineKeyboardMarkup:
         _action = "pause" if playing else "resume"
-        return self.ikm(
-            [[self.ikb(text=_text, callback_data=f"controls {_action} {chat_id} q")]]
-        )
+        buttons = [
+            [self.ikb(text=_text, callback_data=f"controls {_action} {chat_id} q")]
+        ]
+        
+        # Add pagination if needed
+        if total_pages > 1:
+            nav_row = []
+            if page > 0:
+                nav_row.append(self.ikb(text="◀️", callback_data=f"controls page {chat_id} {page-1}"))
+            
+            nav_row.append(self.ikb(text=f"📄 {page+1}/{total_pages}", callback_data="noop"))
+            
+            if page < total_pages - 1:
+                nav_row.append(self.ikb(text="▶️", callback_data=f"controls page {chat_id} {page+1}"))
+            
+            buttons.append(nav_row)
+            
+        return self.ikm(buttons)
 
     def settings_markup(
         self, lang=None, admin_only=True, cmd_delete=True, chat_id=0
@@ -169,7 +184,7 @@ class Inline:
         )
 
     def player_settings_markup(
-        self, loop_mode="normal", admin_only=True, cmd_delete=True, video_mode=True, video_quality="720p", chat_id=0
+        self, loop_mode="normal", admin_only=True, cmd_delete=True, video_mode=True, video_quality="720p", drama_mode=False, chat_id=0
     ) -> types.InlineKeyboardMarkup:
         """Player settings panel with loop mode and video mode."""
         # Loop mode button text
@@ -215,6 +230,13 @@ class Inline:
                         callback_data="player_settings",
                     ),
                     self.ikb(text="✅ Aktif" if cmd_delete else "❌ Nonaktif", callback_data="player_settings delete"),
+                ],
+                [
+                    self.ikb(
+                        text="🎭 Drama (Admin) ➜",
+                        callback_data="player_settings",
+                    ),
+                    self.ikb(text="✅ Aktif" if drama_mode else "❌ Nonaktif", callback_data="player_settings drama"),
                 ],
                 [
                     self.ikb(text="✖ Close", callback_data="player_settings close"),

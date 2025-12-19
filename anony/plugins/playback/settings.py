@@ -20,6 +20,7 @@ async def player_settings(_, message: types.Message):
     cmd_delete = await db.get_cmd_delete(chat_id)
     video_mode = await db.get_video_mode(chat_id)
     video_quality = await db.get_video_quality(chat_id)
+    drama_mode = await db.get_drama_mode(chat_id)
     
     # Format loop mode display
     loop_text = {
@@ -34,13 +35,14 @@ async def player_settings(_, message: types.Message):
 📹 <b>Video Mode:</b> {'✅ Aktif' if video_mode else '❌ Nonaktif'}
 🎬 <b>Kualitas:</b> 📺 {video_quality}
 👮 <b>Admin Only:</b> {'✅ Aktif' if admin_only else '❌ Nonaktif'}
-🗑 <b>Auto Delete:</b> {'✅ Aktif' if cmd_delete else '❌ Nonaktif'}</blockquote>
+🗑 <b>Auto Delete:</b> {'✅ Aktif' if cmd_delete else '❌ Nonaktif'}
+🎭 <b>Drama (Admin):</b> {'✅ Aktif' if drama_mode else '❌ Nonaktif'}</blockquote>
 
 <i>Klik tombol di bawah untuk mengubah pengaturan</i>"""
     
     await message.reply_text(
         text,
         parse_mode=enums.ParseMode.HTML,
-        reply_markup=buttons.player_settings_markup(loop_mode, admin_only, cmd_delete, video_mode, video_quality, chat_id)
+        reply_markup=buttons.player_settings_markup(loop_mode, admin_only, cmd_delete, video_mode, video_quality, drama_mode, chat_id)
     )
 

@@ -303,6 +303,22 @@ class MongoDB:
             upsert=True,
         )
 
+    # DRAMA MODE METHODS
+    async def get_drama_mode(self, chat_id: int) -> bool:
+        """Get drama mode for a chat. Returns True if admin only, False if everyone."""
+        doc = await self.chatsdb.find_one({"_id": chat_id})
+        if doc and "drama_mode" in doc:
+            return doc["drama_mode"]
+        return False  # Default: allowed for everyone
+
+    async def set_drama_mode(self, chat_id: int, admin_only: bool) -> None:
+        """Set drama mode for a chat."""
+        await self.chatsdb.update_one(
+            {"_id": chat_id},
+            {"$set": {"drama_mode": admin_only}},
+            upsert=True,
+        )
+
     # SUDO METHODS
     async def add_sudo(self, user_id: int) -> None:
         await self.cache.update_one(
