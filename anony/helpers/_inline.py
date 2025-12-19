@@ -69,11 +69,17 @@ class Inline:
             keyboard.append([
                 self.ikb(text="⚙️ System Info", callback_data="bot_stats_sudo s"),
             ])
+        keyboard.append([
+            self.ikb(text="✖ Close", callback_data="stats_close"),
+        ])
         return self.ikm(keyboard)
 
     def back_stats_markup(self, _lang=None) -> types.InlineKeyboardMarkup:
         """Back button for stats."""
-        return self.ikm([[self.ikb(text="« Kembali", callback_data="stats_back")]])
+        return self.ikm([
+            [self.ikb(text="« Kembali", callback_data="stats_back")],
+            [self.ikb(text="✖ Close", callback_data="stats_close")]
+        ])
 
     def overall_stats_markup(self, _lang=None, main: bool = False) -> types.InlineKeyboardMarkup:
         """Overall stats navigation."""

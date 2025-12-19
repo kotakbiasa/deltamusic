@@ -333,3 +333,13 @@ async def stats_back_callback(_, query: types.CallbackQuery):
             parse_mode=enums.ParseMode.HTML,
             reply_markup=buttons.stats_buttons({}, is_sudo)
         )
+
+
+@app.on_callback_query(filters.regex("stats_close") & ~app.bl_users)
+async def stats_close_callback(_, query: types.CallbackQuery):
+    """Close button - delete stats message."""
+    try:
+        await query.message.delete()
+    except:
+        pass
+
