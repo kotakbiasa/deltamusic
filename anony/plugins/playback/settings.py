@@ -19,6 +19,7 @@ async def player_settings(_, message: types.Message):
     admin_only = await db.get_play_mode(chat_id)
     cmd_delete = await db.get_cmd_delete(chat_id)
     video_mode = await db.get_video_mode(chat_id)
+    video_quality = await db.get_video_quality(chat_id)
     
     # Format loop mode display
     loop_text = {
@@ -31,6 +32,7 @@ async def player_settings(_, message: types.Message):
 
 <blockquote>🔁 <b>Loop Mode:</b> {loop_text}
 📹 <b>Video Mode:</b> {'✅ Aktif' if video_mode else '❌ Nonaktif'}
+🎬 <b>Kualitas:</b> 📺 {video_quality}
 👮 <b>Admin Only:</b> {'✅ Aktif' if admin_only else '❌ Nonaktif'}
 🗑 <b>Auto Delete:</b> {'✅ Aktif' if cmd_delete else '❌ Nonaktif'}</blockquote>
 
@@ -39,5 +41,6 @@ async def player_settings(_, message: types.Message):
     await message.reply_text(
         text,
         parse_mode=enums.ParseMode.HTML,
-        reply_markup=buttons.player_settings_markup(loop_mode, admin_only, cmd_delete, video_mode, chat_id)
+        reply_markup=buttons.player_settings_markup(loop_mode, admin_only, cmd_delete, video_mode, video_quality, chat_id)
     )
+

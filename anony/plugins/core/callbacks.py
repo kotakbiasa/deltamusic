@@ -257,6 +257,24 @@ async def _player_settings_cb(_, query: types.CallbackQuery):
     elif cmd[1] == "delete":
         cmd_delete = not cmd_delete
         await db.set_cmd_delete(chat_id, cmd_delete)
+    elif cmd[1] == "quality":
+        # Cycle through quality options
+        qualities = ["360p", "480p", "720p", "1080p"]
+        video_quality = await db.get_video_quality(chat_id)
+        current_idx = qualities.index(video_quality) if video_quality in qualities else 2
+        new_quality = qualities[(current_idx + 1) % len(qualities)]
+        await db.set_video_quality(chat_id, new_quality)
+        video_quality = new_quality
+    elif cmd[1] == "close":
+        try:
+            await query.message.delete()
+        except:
+            pass
+        return
+    
+    # Get video quality if not already set
+    if 'video_quality' not in dir():
+        video_quality = await db.get_video_quality(chat_id)
     
     # Format loop mode display
     loop_text = {
@@ -269,6 +287,7 @@ async def _player_settings_cb(_, query: types.CallbackQuery):
 
 <blockquote>🔁 <b>Loop Mode:</b> {loop_text}
 📹 <b>Video Mode:</b> {'✅ Aktif' if video_mode else '❌ Nonaktif'}
+🎬 <b>Kualitas:</b> 📺 {video_quality}
 👮 <b>Admin Only:</b> {'✅ Aktif' if admin_only else '❌ Nonaktif'}
 🗑 <b>Auto Delete:</b> {'✅ Aktif' if cmd_delete else '❌ Nonaktif'}</blockquote>
 
@@ -277,6 +296,6 @@ async def _player_settings_cb(_, query: types.CallbackQuery):
     await query.edit_message_text(
         text,
         parse_mode=enums.ParseMode.HTML,
-        reply_markup=buttons.player_settings_markup(loop_mode, admin_only, cmd_delete, video_mode, chat_id)
+        reply_markup=buttons.player_settings_markup(loop_mode, admin_only, cmd_delete, video_mode, video_quality, chat_id)
     )
 

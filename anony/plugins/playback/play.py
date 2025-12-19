@@ -34,6 +34,14 @@ async def play_hndlr(
     video: bool = False,
     url: str = None,
 ) -> None:
+    # Add reaction to the message
+    try:
+        import random
+        reactions = ["🎵", "🎶", "🎧", "🎤", "🎸", "🎹", "🎺", "🥁", "🔥", "❤️", "👍", "⚡"]
+        await m.react(emoji=random.choice(reactions))
+    except:
+        pass
+    
     # Auto-delete command if enabled
     if config.AUTO_DELETE_COMMANDS:
         await utils.auto_delete(m)

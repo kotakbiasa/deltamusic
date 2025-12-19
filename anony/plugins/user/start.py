@@ -64,15 +64,6 @@ async def start(_, message: types.Message):
         await db.add_chat(message.chat.id)
 
 
-@app.on_message(filters.command(["playmode"]) & filters.group & ~app.bl_users)
-async def playmode_redirect(_, message: types.Message):
-    """Redirect to /settings for backward compatibility."""
-    await message.reply_text(
-        "ℹ️ <b>Perintah Dipindahkan</b>\n\n<blockquote>Gunakan /settings untuk mengakses pengaturan player.</blockquote>",
-        parse_mode=enums.ParseMode.HTML,
-    )
-
-
 @app.on_message(filters.new_chat_members, group=7)
 async def _new_member(_, message: types.Message):
     await asyncio.sleep(3)

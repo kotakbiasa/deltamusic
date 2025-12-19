@@ -162,7 +162,7 @@ class Inline:
         )
 
     def player_settings_markup(
-        self, loop_mode="normal", admin_only=True, cmd_delete=True, video_mode=True, chat_id=0
+        self, loop_mode="normal", admin_only=True, cmd_delete=True, video_mode=True, video_quality="720p", chat_id=0
     ) -> types.InlineKeyboardMarkup:
         """Player settings panel with loop mode and video mode."""
         # Loop mode button text
@@ -190,6 +190,13 @@ class Inline:
                 ],
                 [
                     self.ikb(
+                        text="🎬 Kualitas ➜",
+                        callback_data="player_settings",
+                    ),
+                    self.ikb(text=f"📺 {video_quality}", callback_data="player_settings quality"),
+                ],
+                [
+                    self.ikb(
                         text="👮 Admin Only ➜",
                         callback_data="player_settings",
                     ),
@@ -201,6 +208,9 @@ class Inline:
                         callback_data="player_settings",
                     ),
                     self.ikb(text="✅ Aktif" if cmd_delete else "❌ Nonaktif", callback_data="player_settings delete"),
+                ],
+                [
+                    self.ikb(text="✖ Close", callback_data="player_settings close"),
                 ],
             ]
         )

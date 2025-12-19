@@ -287,6 +287,22 @@ class MongoDB:
             upsert=True,
         )
 
+    # VIDEO QUALITY METHODS
+    async def get_video_quality(self, chat_id: int) -> str:
+        """Get video quality for a chat. Returns '360p', '480p', '720p', or '1080p'."""
+        doc = await self.chatsdb.find_one({"_id": chat_id})
+        if doc and "video_quality" in doc:
+            return doc["video_quality"]
+        return "720p"  # Default quality
+
+    async def set_video_quality(self, chat_id: int, quality: str) -> None:
+        """Set video quality for a chat."""
+        await self.chatsdb.update_one(
+            {"_id": chat_id},
+            {"$set": {"video_quality": quality}},
+            upsert=True,
+        )
+
     # SUDO METHODS
     async def add_sudo(self, user_id: int) -> None:
         await self.cache.update_one(
