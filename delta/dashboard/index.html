@@ -313,6 +313,12 @@
             animation: spin 1s infinite linear;
         }
 
+        .scrollable-card {
+            max-height: 400px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
         @keyframes spin {
             from {
                 transform: rotate(0deg);
@@ -360,7 +366,7 @@
         </div>
 
         <div class="section-title">Top Tracks</div>
-        <div class="card" id="topTracksList">
+        <div class="card scrollable-card" id="topTracksList">
             <div class="status-text">Loading...</div>
         </div>
 
@@ -517,7 +523,7 @@
 
         async function loadLists() {
             const [tracks, users, chats] = await Promise.all([
-                fetchAPI('top-tracks?limit=5'),
+                fetchAPI('top-tracks?limit=100'),
                 fetchAPI('top-users?limit=5'),
                 fetchAPI('top-chats?limit=5')
             ]);
