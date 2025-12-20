@@ -479,11 +479,11 @@ async def drama_download_callback(_, callback: types.CallbackQuery):
     msg = await callback.message.reply_text(f"⬇️ <b>Mengunduh...</b>\n\n🎬 {drama_title}\n📺 {episode.chapter_name}", parse_mode=enums.ParseMode.HTML)
     
     try:
-        await callback.message.reply_video(
-            video=video_url,
+        await callback.message.reply_document(
+            document=video_url,
             caption=f"🎬 <b>{drama_title}</b>\n📺 {episode.chapter_name}\n💿 {quality}",
             file_name=filename,
-            supports_streaming=True
+            thumb=episode.thumbnail if episode.thumbnail else None
         )
         await msg.delete()
     except Exception as e:
