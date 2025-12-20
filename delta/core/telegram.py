@@ -40,11 +40,11 @@ class Telegram:
         video = bool(getattr(media, "mime_type", "").startswith("video/"))
 
         if duration > config.DURATION_LIMIT:
-            await sent.edit_text(sent.lang["play_duration_limit"].format(config.DURATION_LIMIT // 60))
+            await sent.edit_text(f"⚠️ <b>Durasi melebihi batas {config.DURATION_LIMIT // 60} menit.</b>")
             return await sent.stop_propagation()
 
         if file_size > config.FILE_SIZE_LIMIT:
-            await sent.edit_text(sent.lang["dl_limit"])
+            await sent.edit_text("⚠️ <b>Ukuran file melebihi batas yang diizinkan.</b>")
             return await sent.stop_propagation()
 
         async def progress(current, total):
@@ -59,23 +59,23 @@ class Telegram:
             percent = current * 100 / total
             speed = current / (now - start_time or 1e-6)
             eta = utils.format_eta(int((total - current) / speed))
-            text = sent.lang["dl_progress"].format(
-                utils.format_size(current),
-                utils.format_size(total),
-                percent,
-                utils.format_size(speed),
-                eta,
+            text = (
+                f"⬇️ <b>Sedang Mengunduh</b>\n\n"
+                f"💾 <b>Ukuran:</b> {utils.format_size(current)} / {utils.format_size(total)}\n"
+                f"📊 <b>Proses:</b> {percent:.1f}%\n"
+                f"⚡ <b>Speed:</b> {utils.format_size(speed)}/s\n"
+                f"⏱ <b>ETA:</b> {eta}"
             )
 
             await sent.edit_text(
-                text, reply_markup=buttons.cancel_dl(sent.lang["cancel"])
+                text, reply_markup=buttons.cancel_dl("❌ Batal")
             )
 
         try:
             file_path = f"downloads/{file_id}.{file_ext}"
             if not os.path.exists(file_path):
                 if file_id in self.active:
-                    await sent.edit_text(sent.lang["dl_active"])
+                    await sent.edit_text("⚠️ <b>Sedang mengunduh file ini...</b>")
                     return await sent.stop_propagation()
 
                 self.active.append(file_id)
@@ -87,7 +87,7 @@ class Telegram:
                 self.active.remove(file_id)
                 self.active_tasks.pop(msg_id, None)
                 await sent.edit_text(
-                    sent.lang["dl_complete"].format(round(time.time() - start_time, 2))
+                    f"✅ <b>Unduhan Selesai</b>\n\n⏱ <b>Waktu:</b> {round(time.time() - start_time, 2)} detik"
                 )
 
             return Media(
@@ -117,7 +117,7 @@ class Telegram:
             task.cancel()
         if event or task:
             await query.edit_message_text(
-                query.lang["dl_cancel"].format(query.from_user.mention)
+                f"❌ <b>Unduhan dibatalkan oleh {query.from_user.mention}.</b>"
             )
         else:
-            await query.answer(query.lang["dl_not_found"], show_alert=True)
+            await query.answer("⚠️ Tugas unduhan tidak ditemukan.", show_alert=True)

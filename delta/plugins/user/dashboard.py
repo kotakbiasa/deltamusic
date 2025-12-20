@@ -37,7 +37,7 @@ async def dashboard_command(_, message: types.Message):
     if not is_sudo:
         # Non-sudo users always see Mini App button
         from os import getenv
-        miniapp_url = getenv("WEBAPP_URL", "http://localhost:8000/miniapp")
+        miniapp_url = getenv("WEBAPP_URL", "https://google.com")
         
         keyboard = types.InlineKeyboardMarkup([[
             types.InlineKeyboardButton(
@@ -62,7 +62,7 @@ async def dashboard_command(_, message: types.Message):
     # Sudo users get the Admin Dashboard Info
     # Sudo users get the Admin Dashboard Info
     from os import getenv
-    dashboard_url = getenv("DASHBOARD_URL", "http://localhost:8000")
+    dashboard_url = getenv("DASHBOARD_URL", "https://google.com")
     
     keyboard = types.InlineKeyboardMarkup([[
         types.InlineKeyboardButton(
