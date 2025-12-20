@@ -373,14 +373,26 @@ async def drama_play_callback(_, callback: types.CallbackQuery):
     text += f"⚠️ Link expired dalam beberapa jam.\n"
     text += f"Klik tombol di bawah untuk menonton.</blockquote>"
     
-    keyboard = types.InlineKeyboardMarkup([
-        [
-            types.InlineKeyboardButton("▶️ Putar", callback_data=f"drama_stream:{book_id}:{ep_index}:{quality}"),
-            types.InlineKeyboardButton("📥 Unduh", callback_data=f"drama_download:{book_id}:{ep_index}:{quality}")
-        ],
-        [types.InlineKeyboardButton("🌐 Nonton di Browser", url=video_url)],
-        [types.InlineKeyboardButton("◀️ Kembali", callback_data=f"drama_ep:{book_id}:{ep_index}")]
-    ])
+    # Check if private chat (bot DM)
+    is_private = callback.message.chat.type == enums.ChatType.PRIVATE
+    
+    if is_private:
+        # Bot DM: Download only
+        keyboard = types.InlineKeyboardMarkup([
+            [types.InlineKeyboardButton("📥 Unduh", callback_data=f"drama_download:{book_id}:{ep_index}:{quality}")],
+            [types.InlineKeyboardButton("🌐 Nonton di Browser", url=video_url)],
+            [types.InlineKeyboardButton("◀️ Kembali", callback_data=f"drama_ep:{book_id}:{ep_index}")]
+        ])
+    else:
+        # Group: Play + Download
+        keyboard = types.InlineKeyboardMarkup([
+            [
+                types.InlineKeyboardButton("▶️ Putar", callback_data=f"drama_stream:{book_id}:{ep_index}:{quality}"),
+                types.InlineKeyboardButton("📥 Unduh", callback_data=f"drama_download:{book_id}:{ep_index}:{quality}")
+            ],
+            [types.InlineKeyboardButton("🌐 Nonton di Browser", url=video_url)],
+            [types.InlineKeyboardButton("◀️ Kembali", callback_data=f"drama_ep:{book_id}:{ep_index}")]
+        ])
     
     if callback.message.photo:
         await callback.message.edit_caption(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
