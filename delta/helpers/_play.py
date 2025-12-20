@@ -47,7 +47,7 @@ def checkUB(play):
                     "<u><b>Hanya admin yang bisa play</b></u>\n\nHanya admin yang diizinkan memutar musik di chat ini."
                 )
 
-        if chat_id not in db.active_calls:
+        if not await db.get_call(chat_id):
             client = await db.get_client(chat_id)
             try:
                 member = await app.get_chat_member(chat_id, client.id)
