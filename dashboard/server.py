@@ -76,6 +76,13 @@ async def read_root():
         return HTMLResponse(content=f.read())
 
 
+@dashboard_app.get("/miniapp")
+async def read_miniapp():
+    """Serve the Telegram Mini App HTML"""
+    with open("dashboard/miniapp.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
+
 @dashboard_app.get("/api/overview", response_model=StatsOverview)
 async def get_overview():
     """Get overall statistics overview"""

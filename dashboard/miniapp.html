@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DeltaMusic Dashboard</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #999999;
+            --tg-theme-link-color: #2481cc;
+            --tg-theme-button-color: #2481cc;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #f4f4f5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            padding: 0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 16px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--tg-theme-link-color);
+        }
+
+        .section {
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .section h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 200px;
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table thead {
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+        }
+
+        table th {
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 13px;
+        }
+
+        table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .rank {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .spinner {
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top: 3px solid var(--tg-theme-button-color);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 DeltaMusic Dashboard</h1>
+            <p>Real-time Statistics</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon">👥</div>
+                <div class="label">Users</div>
+                <div class="value" id="totalUsers">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">💬</div>
+                <div class="label">Groups</div>
+                <div class="value" id="totalChats">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">🎵</div>
+                <div class="label">Plays</div>
+                <div class="value" id="totalPlays">-</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">🔊</div>
+                <div class="label">Active</div>
+                <div class="value" id="activeCalls">-</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Play Trend (7 Days)</h2>
+            <div class="chart-wrapper">
+                <canvas id="dailyChart"></canvas>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🏆 Top Tracks</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Plays</th>
+                    </tr>
+                </thead>
+                <tbody id="topTracksTable">
+                    <tr><td colspan="3" class="loading"><div class="spinner"></div>Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>👤 Top Users</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Plays</th>
+                    </tr>
+                </thead>
+                <tbody id="topUsersTable">
+                    <tr><td colspan="3" class="loading"><div class="spinner"></div>Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>💬 Top Groups</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Group Name</th>
+                        <th>Plays</th>
+                    </tr>
+                </thead>
+                <tbody id="topChatsTable">
+                    <tr><td colspan="3" class="loading"><div class="spinner"></div>Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+
+        // Apply Telegram theme colors
+        document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
+        document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
+        document.documentElement.style.setProperty('--tg-theme-hint-color', tg.themeParams.hint_color || '#999999');
+        document.documentElement.style.setProperty('---theme-link-color', tg.themeParams.link_color || '#2481cc');
+        document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#2481cc');
+        document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+        document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', tg.themeParams.secondary_bg_color || '#f4f4f5');
+
+        let dailyChart = null;
+        const API_BASE = window.location.origin;
+
+        // Setup MainButton for refresh
+        tg.MainButton.text = "🔄 Refresh";
+        tg.MainButton.onClick(() => loadAllData());
+        tg.MainButton.show();
+
+        async function fetchAPI(endpoint) {
+            try {
+                const response = await fetch(`${API_BASE}/api/${endpoint}`);
+                if (!response.ok) throw new Error('API request failed');
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${endpoint}:`, error);
+                tg.showAlert(`Error loading data: ${error.message}`);
+                return null;
+            }
+        }
+
+        async function loadOverview() {
+            const data = await fetchAPI('overview');
+            if (data) {
+                document.getElementById('totalUsers').textContent = data.total_users.toLocaleString();
+                document.getElementById('totalChats').textContent = data.total_chats.toLocaleString();
+                document.getElementById('totalPlays').textContent = data.total_plays.toLocaleString();
+                document.getElementById('activeCalls').textContent = data.active_calls.toLocaleString();
+            }
+        }
+
+        async function loadDailyStats() {
+            const data = await fetchAPI('daily-stats?days=7');
+            if (data) {
+                const labels = data.map(d => {
+                    const date = new Date(d.date);
+                    return date.toLocaleDateString('id-ID', { weekday: 'short' });
+                });
+                const values = data.map(d => d.play_count);
+
+                const ctx = document.getElementById('dailyChart');
+                
+                if (dailyChart) dailyChart.destroy();
+
+                dailyChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Plays',
+                            data: values,
+                            borderColor: getComputedStyle(document.documentElement).getPropertyValue('--tg-theme-button-color'),
+                            backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--tg-theme-button-color') + '20',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            }
+        }
+
+        async function loadTopTracks() {
+            const data = await fetchAPI('top-tracks?limit=10');
+            const tbody = document.getElementById('topTracksTable');
+            
+            if (data && data.length > 0) {
+                tbody.innerHTML = data.map((track, index) => `
+                    <tr>
+                        <td><span class="rank">${index + 1}</span></td>
+                        <td><strong>${track.title}</strong></td>
+                        <td><strong>${track.play_count.toLocaleString()}</strong></td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="3" class="error">No data</td></tr>';
+            }
+        }
+
+        async function loadTopUsers() {
+            const data = await fetchAPI('top-users?limit=10');
+            const tbody = document.getElementById('topUsersTable');
+            
+            if (data && data.length > 0) {
+                tbody.innerHTML = data.map((user, index) => `
+                    <tr>
+                        <td><span class="rank">${index + 1}</span></td>
+                        <td><strong>${user.username}</strong></td>
+                        <td><strong>${user.play_count.toLocaleString()}</strong></td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="3" class="error">No data</td></tr>';
+            }
+        }
+
+        async function loadTopChats() {
+            const data = await fetchAPI('top-chats?limit=10');
+            const tbody = document.getElementById('topChatsTable');
+            
+            if (data && data.length > 0) {
+                tbody.innerHTML = data.map((chat, index) => `
+                    <tr>
+                        <td><span class="rank">${index + 1}</span></td>
+                        <td><strong>${chat.chat_name}</strong></td>
+                        <td><strong>${chat.play_count.toLocaleString()}</strong></td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="3" class="error">No data</td></tr>';
+            }
+        }
+
+        async function loadAllData() {
+            tg.MainButton.showProgress();
+            
+            await Promise.all([
+                loadOverview(),
+                loadDailyStats(),
+                loadTopTracks(),
+                loadTopUsers(),
+                loadTopChats()
+            ]);
+            
+            tg.MainButton.hideProgress();
+        }
+
+        // Auto-load on start
+        loadAllData();
+
+        // Send ready event to Telegram
+        tg.sendData(JSON.stringify({ event: 'loaded', user_id: tg.initDataUnsafe?.user?.id }));
+    </script>
+</body>
+</html>
