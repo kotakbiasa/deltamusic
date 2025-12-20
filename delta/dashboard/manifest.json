@@ -1,7 +1,7 @@
 {
-    "name": "DeltaMusic Dashboard",
-    "short_name": "DeltaMusic",
-    "description": "Real-time statistics dashboard for DeltaMusic Bot",
+    "name": "{{BOT_NAME}} Dashboard",
+    "short_name": "{{BOT_NAME}}",
+    "description": "Real-time statistics dashboard for {{BOT_NAME}} Bot",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#efeff4",

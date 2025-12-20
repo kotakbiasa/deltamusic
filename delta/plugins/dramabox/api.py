@@ -13,6 +13,8 @@ import aiohttp
 from typing import Optional, List, Dict, Any
 from dataclasses import dataclass
 
+from delta import logger
+
 
 # Base URL API
 BASE_URL = "https://dramabox.sansekai.my.id/api/dramabox"
@@ -103,7 +105,7 @@ class DramaBoxAPI:
                         return await response.json()
                     return None
         except Exception as e:
-            print(f"DramaBox API Error: {e}")
+            logger.error(f"DramaBox API Error: {e}")
             return None
     
     async def get_trending(self) -> List[Drama]:

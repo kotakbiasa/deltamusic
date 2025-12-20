@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DeltaMusic Dashboard</title>
+    <title>{{BOT_NAME}} Dashboard</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
@@ -129,7 +130,7 @@
 
         table td {
             padding: 10px 8px;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             font-size: 13px;
         }
 
@@ -157,7 +158,7 @@
         }
 
         .spinner {
-            border: 3px solid rgba(0,0,0,0.1);
+            border: 3px solid rgba(0, 0, 0, 0.1);
             border-radius: 50%;
             border-top: 3px solid var(--tg-theme-button-color);
             width: 40px;
@@ -167,8 +168,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .error {
@@ -178,10 +184,11 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎵 DeltaMusic Dashboard</h1>
+            <h1>🎵 {{BOT_NAME}} Dashboard</h1>
             <p>Real-time Statistics</p>
         </div>
 
@@ -226,7 +233,11 @@
                     </tr>
                 </thead>
                 <tbody id="topTracksTable">
-                    <tr><td colspan="3" class="loading"><div class="spinner"></div>Loading...</td></tr>
+                    <tr>
+                        <td colspan="3" class="loading">
+                            <div class="spinner"></div>Loading...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -242,7 +253,11 @@
                     </tr>
                 </thead>
                 <tbody id="topUsersTable">
-                    <tr><td colspan="3" class="loading"><div class="spinner"></div>Loading...</td></tr>
+                    <tr>
+                        <td colspan="3" class="loading">
+                            <div class="spinner"></div>Loading...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -258,7 +273,11 @@
                     </tr>
                 </thead>
                 <tbody id="topChatsTable">
-                    <tr><td colspan="3" class="loading"><div class="spinner"></div>Loading...</td></tr>
+                    <tr>
+                        <td colspan="3" class="loading">
+                            <div class="spinner"></div>Loading...
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -319,7 +338,7 @@
                 const values = data.map(d => d.play_count);
 
                 const ctx = document.getElementById('dailyChart');
-                
+
                 if (dailyChart) dailyChart.destroy();
 
                 dailyChart = new Chart(ctx, {
@@ -354,7 +373,7 @@
         async function loadTopTracks() {
             const data = await fetchAPI('top-tracks?limit=10');
             const tbody = document.getElementById('topTracksTable');
-            
+
             if (data && data.length > 0) {
                 tbody.innerHTML = data.map((track, index) => `
                     <tr>
@@ -371,7 +390,7 @@
         async function loadTopUsers() {
             const data = await fetchAPI('top-users?limit=10');
             const tbody = document.getElementById('topUsersTable');
-            
+
             if (data && data.length > 0) {
                 tbody.innerHTML = data.map((user, index) => `
                     <tr>
@@ -388,7 +407,7 @@
         async function loadTopChats() {
             const data = await fetchAPI('top-chats?limit=10');
             const tbody = document.getElementById('topChatsTable');
-            
+
             if (data && data.length > 0) {
                 tbody.innerHTML = data.map((chat, index) => `
                     <tr>
@@ -404,7 +423,7 @@
 
         async function loadAllData() {
             tg.MainButton.showProgress();
-            
+
             await Promise.all([
                 loadOverview(),
                 loadDailyStats(),
@@ -412,7 +431,7 @@
                 loadTopUsers(),
                 loadTopChats()
             ]);
-            
+
             tg.MainButton.hideProgress();
         }
 
@@ -423,4 +442,5 @@
         tg.sendData(JSON.stringify({ event: 'loaded', user_id: tg.initDataUnsafe?.user?.id }));
     </script>
 </body>
+
 </html>

@@ -47,7 +47,7 @@ async def dashboard_command(_, message: types.Message):
         ]])
         
         await message.reply_text(
-            "📊 <b>DeltaMusic Dashboard</b>\n\n"
+            f"📊 <b>{app.name} Dashboard</b>\n\n"
             "<blockquote>Lihat statistik real-time:\n"
             "• 👥 Total Users & Groups\n"
             "• 🎵 Top Tracks & Users\n"
@@ -72,7 +72,7 @@ async def dashboard_command(_, message: types.Message):
     ]])
     
     await message.reply_text(
-        f"📊 <b>DeltaMusic Dashboard</b>\n\n"
+        f"📊 <b>{app.name} Dashboard</b>\n\n"
         f"<blockquote>"
         f"✅ <b>Status:</b> Premium (Auto-Started)\n\n"
         f"💡 <b>Features:</b>\n"

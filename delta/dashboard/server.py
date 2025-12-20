@@ -93,29 +93,46 @@ class DailyStats(BaseModel):
     play_count: int
 
 
+def render_template(path: Path) -> HTMLResponse:
+    """Helper to render HTML templates with dynamic bot name"""
+    try:
+        # Get bot name safely
+        bot_name = telegram_app.name if hasattr(telegram_app, "name") else "Music Bot"
+        
+        with open(path, "r", encoding="utf-8") as f:
+            content = f.read()
+            
+        # Replace placeholders
+        content = content.replace("{{BOT_NAME}}", bot_name)
+        
+        # Determine media type based on extension
+        media_type = "application/json" if path.suffix == ".json" else "text/html"
+        return HTMLResponse(content=content, media_type=media_type)
+    except Exception as e:
+        logger.error(f"Error rendering template {path}: {e}")
+        raise HTTPException(status_code=500, detail="Template Error")
+
+
 # API Routes
 @dashboard_app.get("/")
 async def read_root():
     """Serve the dashboard HTML"""
     index_path = Path(__file__).parent / "index.html"
-    with open(index_path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    return render_template(index_path)
 
 
 @dashboard_app.get("/miniapp")
 async def read_miniapp():
     """Serve the Telegram Mini App HTML"""
     miniapp_path = Path(__file__).parent / "miniapp.html"
-    with open(miniapp_path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    return render_template(miniapp_path)
 
 
 @dashboard_app.get("/manifest.json")
 async def read_manifest():
     """Serve the PWA Manifest"""
     manifest_path = Path(__file__).parent / "manifest.json"
-    with open(manifest_path, "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read(), media_type="application/json")
+    return render_template(manifest_path)
 
 
 @dashboard_app.get("/api/overview", response_model=StatsOverview)

@@ -28,9 +28,22 @@ async def restart_bot(_, message: types.Message):
 async def update_bot(_, message: types.Message):
     """Update and restart bot."""
     sent = await message.reply_text("🔄 <b>Checking Updates...</b>", parse_mode=enums.ParseMode.HTML)
-    os.system("git pull")
+    
+    process = await asyncio.create_subprocess_shell(
+        "git pull",
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    stdout, stderr = await process.communicate()
+    
+    if process.returncode != 0:
+        return await sent.edit_text(
+            f"❌ <b>Update Failed</b>\n\n<pre>{stderr.decode()}</pre>",
+            parse_mode=enums.ParseMode.HTML
+        )
+
     await sent.edit_text(
-        "✅ <b>Updated!</b>\n\n<blockquote>Restarting system...</blockquote>",
+        f"✅ <b>Updated!</b>\n\n<pre>{stdout.decode()}</pre>\n<blockquote>Restarting system...</blockquote>",
         parse_mode=enums.ParseMode.HTML
     )
     await asyncio.sleep(1)
