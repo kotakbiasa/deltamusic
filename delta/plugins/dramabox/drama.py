@@ -380,10 +380,12 @@ async def drama_play_callback(_, callback: types.CallbackQuery):
     is_private = callback.message.chat.type == enums.ChatType.PRIVATE
     
     if is_private:
-        # Bot DM: Download only
+        # Bot DM: Download options only
         keyboard = types.InlineKeyboardMarkup([
-            [types.InlineKeyboardButton("📥 Unduh", callback_data=f"drama_download:{book_id}:{ep_index}:{quality}")],
-            [types.InlineKeyboardButton("🌐 Nonton di Browser", url=video_url)],
+            [
+                types.InlineKeyboardButton("📥 Unduh", callback_data=f"drama_download:{book_id}:{ep_index}:{quality}"),
+                types.InlineKeyboardButton("📥 Unduh di Browser", url=video_url)
+            ],
             [types.InlineKeyboardButton("◀️ Kembali", callback_data=f"drama_ep:{book_id}:{ep_index}")]
         ])
     else:
