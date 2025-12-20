@@ -34,83 +34,53 @@ async def dashboard_command(_, message: types.Message):
     
     is_sudo = message.from_user.id in app.sudoers or message.from_user.id == config.OWNER_ID
     
-    if len(message.command) == 1:
-        # For non-sudo users, show Mini App button
-        if not is_sudo:
-            from os import getenv
-            miniapp_url = getenv("WEBAPP_URL", "http://localhost:8000/miniapp")
-            
-            keyboard = types.InlineKeyboardMarkup([[
-                types.InlineKeyboardButton(
-                    text="📊 Open Dashboard",
-                    web_app=types.WebAppInfo(url=miniapp_url)
-                )
-            ]])
-            
-            await message.reply_text(
-                "📊 <b>DeltaMusic Dashboard</b>\n\n"
-                "<blockquote>Lihat statistik real-time:\n"
-                "• 👥 Total Users & Groups\n"
-                "• 🎵 Top Tracks & Users\n"
-                "• 📈 Play Trends\n"
-                "• 🏆 Leaderboards\n\n"
-                "Klik tombol di bawah untuk membuka!</blockquote>",
-                parse_mode=enums.ParseMode.HTML,
-                reply_markup=keyboard
-            )
-            return
+    if not is_sudo:
+        # Non-sudo users always see Mini App button
+        from os import getenv
+        miniapp_url = getenv("WEBAPP_URL", "http://localhost:8000/miniapp")
         
-        # Show dashboard info for sudo users
-        dashboard_url = f"http://localhost:8000"  # Adjust based on your deployment
+        keyboard = types.InlineKeyboardMarkup([[
+            types.InlineKeyboardButton(
+                text="📊 Open Dashboard",
+                web_app=types.WebAppInfo(url=miniapp_url)
+            )
+        ]])
         
         await message.reply_text(
-            f"📊 <b>Statistics Dashboard</b>\n\n"
-            f"<blockquote>"
-            f"🌐 <b>URL:</b> <code>{dashboard_url}</code>\n\n"
-            f"<b>Commands:</b>\n"
-            f"• <code>/dashboard start</code> - Start server\n"
-            f"• <code>/dashboard stop</code> - Stop server\n\n"
-            f"💡 Dashboard shows real-time statistics:\n"
-            f"• Top tracks & users\n"
-            f"• Active voice calls\n"
-            f"• Daily play counts\n"
-            f"• Group rankings"
-            f"</blockquote>",
-            parse_mode=enums.ParseMode.HTML
+            "📊 <b>DeltaMusic Dashboard</b>\n\n"
+            "<blockquote>Lihat statistik real-time:\n"
+            "• 👥 Total Users & Groups\n"
+            "• 🎵 Top Tracks & Users\n"
+            "• 📈 Play Trends\n"
+            "• 🏆 Leaderboards\n\n"
+            "Klik tombol di bawah untuk membuka!</blockquote>",
+            parse_mode=enums.ParseMode.HTML,
+            reply_markup=keyboard
         )
         return
+
+    # Sudo users get the Admin Dashboard Info
+    # Sudo users get the Admin Dashboard Info
+    from os import getenv
+    dashboard_url = getenv("DASHBOARD_URL", "http://localhost:8000")
     
-    # Admin-only commands
-    if not is_sudo:
-        return await message.reply_text(
-            "❌ <b>Unauthorized</b>\n\n"
-            "<blockquote>This command is for admins only.</blockquote>",
-            parse_mode=enums.ParseMode.HTML
+    keyboard = types.InlineKeyboardMarkup([[
+        types.InlineKeyboardButton(
+            text="🌐 Open Dashboard",
+            url=dashboard_url
         )
+    ]])
     
-    command = message.command[1].lower()
-    
-    if command == "start":
-        await message.reply_text(
-            f"📊 <b>Starting Dashboard Server...</b>\n\n"
-            f"<blockquote>Please start the dashboard manually using:\n"
-            f"<code>python -m dashboard.server</code>\n\n"
-            f"Or use: <code>python dashboard/server.py</code></blockquote>",
-            parse_mode=enums.ParseMode.HTML
-        )
-    
-    elif command == "stop":
-        await message.reply_text(
-            f"📊 <b>Dashboard Server</b>\n\n"
-            f"<blockquote>To stop the dashboard, press Ctrl+C in the terminal "
-            f"where it's running.</blockquote>",
-            parse_mode=enums.ParseMode.HTML
-        )
-    
-    else:
-        await message.reply_text(
-            f"❌ <b>Invalid Command</b>\n\n"
-            f"<blockquote>Use: <code>/dashboard start</code> or <code>/dashboard stop</code></blockquote>",
-            parse_mode=enums.ParseMode.HTML
-        )
+    await message.reply_text(
+        f"📊 <b>DeltaMusic Dashboard</b>\n\n"
+        f"<blockquote>"
+        f"✅ <b>Status:</b> Premium (Auto-Started)\n\n"
+        f"💡 <b>Features:</b>\n"
+        f"• Real-time analytics\n"
+        f"• Top tracks & active calls\n"
+        f"• User & Group rankings"
+        f"</blockquote>",
+        parse_mode=enums.ParseMode.HTML,
+        reply_markup=keyboard
+    )
 

@@ -50,6 +50,7 @@ class MongoDB:
 
         self.statsdb = self.db.stats
         self.queriesdb = self.db.queries
+        self.dailydb = self.db.daily_stats
 
     async def connect(self) -> None:
         """Check if we can connect to the database.
@@ -444,6 +445,15 @@ class MongoDB:
             upsert=True
         )
 
+        # Add to daily stats
+        from datetime import datetime
+        today = datetime.now().strftime("%Y-%m-%d")
+        await self.dailydb.update_one(
+            {"_id": today},
+            {"$inc": {"count": 1}},
+            upsert=True
+        )
+
     async def get_global_tops(self, limit: int = 10) -> dict:
         """Get top tracks globally."""
         cursor = self.statsdb.find().sort("count", -1).limit(limit)
@@ -535,6 +545,24 @@ class MongoDB:
         """Get total queries count."""
         doc = await self.queriesdb.find_one({"_id": "total_queries"})
         return doc.get("count", 0) if doc else 0
+
+    async def get_daily_play_count(self, days: int = 7) -> list:
+        """Get daily play counts for the last N days."""
+        from datetime import datetime, timedelta
+        
+        results = []
+        today = datetime.now()
+        
+        for i in range(days):
+            date = (today - timedelta(days=i)).strftime("%Y-%m-%d")
+            doc = await self.dailydb.find_one({"_id": date})
+            count = doc.get("count", 0) if doc else 0
+            results.append({
+                "date": date,
+                "play_count": count
+            })
+            
+        return results[::-1]  # Return chronologically (oldest first)
 
     # USER PLAYLIST METHODS
     async def add_to_playlist(self, user_id: int, track_id: str, title: str, duration: str, url: str) -> bool:

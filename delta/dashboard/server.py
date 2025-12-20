@@ -1,6 +1,6 @@
-# Copyright (c) 2025 AnonymousX1025
+# Copyright (c) 2025 DeltaMusic
 # Licensed under the MIT License.
-# This file is part of AnonXMusic
+# This file is part of DeltaMusic
 
 """
 Advanced Statistics Dashboard - FastAPI Backend

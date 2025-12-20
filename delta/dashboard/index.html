@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,7 +35,7 @@
         .header h1 {
             font-size: 3rem;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .header p {
@@ -54,14 +55,14 @@
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             animation: fadeInUp 0.6s ease;
         }
 
         .stat-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
         }
 
         .stat-card .icon {
@@ -92,7 +93,7 @@
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             animation: fadeInUp 0.8s ease;
         }
 
@@ -113,7 +114,7 @@
             border-radius: 20px;
             padding: 30px;
             margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             animation: fadeInUp 1s ease;
             overflow-x: auto;
         }
@@ -188,14 +189,14 @@
             height: 60px;
             font-size: 1.5rem;
             cursor: pointer;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             z-index: 1000;
         }
 
         .refresh-btn:hover {
             transform: scale(1.1);
-            box-shadow: 0 6px 30px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.3);
         }
 
         .refresh-btn:active {
@@ -207,6 +208,7 @@
                 opacity: 0;
                 transform: translateY(-30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -218,6 +220,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -228,6 +231,7 @@
             from {
                 transform: rotate(0deg);
             }
+
             to {
                 transform: rotate(360deg);
             }
@@ -256,11 +260,12 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>🎵 DeltaMusic Dashboard</h1>
-            <p>Real-time Statistics & Analytics</p>
+            <p>Real-time Statistics & Analytics | Managed by DeltaMusic</p>
         </div>
 
         <div class="stats-grid">
@@ -305,7 +310,9 @@
                     </tr>
                 </thead>
                 <tbody id="topTracksTable">
-                    <tr><td colspan="4" class="loading">Loading...</td></tr>
+                    <tr>
+                        <td colspan="4" class="loading">Loading...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -322,7 +329,9 @@
                     </tr>
                 </thead>
                 <tbody id="topUsersTable">
-                    <tr><td colspan="4" class="loading">Loading...</td></tr>
+                    <tr>
+                        <td colspan="4" class="loading">Loading...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -338,7 +347,9 @@
                     </tr>
                 </thead>
                 <tbody id="topChatsTable">
-                    <tr><td colspan="3" class="loading">Loading...</td></tr>
+                    <tr>
+                        <td colspan="3" class="loading">Loading...</td>
+                    </tr>
                 </tbody>
             </table>
         </div>
@@ -384,7 +395,7 @@
                 const values = data.map(d => d.play_count);
 
                 const ctx = document.getElementById('dailyChart');
-                
+
                 if (dailyChart) {
                     dailyChart.destroy();
                 }
@@ -443,7 +454,7 @@
         async function loadTopTracks() {
             const data = await fetchAPI('top-tracks?limit=10');
             const tbody = document.getElementById('topTracksTable');
-            
+
             if (data && data.length > 0) {
                 tbody.innerHTML = data.map((track, index) => `
                     <tr>
@@ -461,7 +472,7 @@
         async function loadTopUsers() {
             const data = await fetchAPI('top-users?limit=10');
             const tbody = document.getElementById('topUsersTable');
-            
+
             if (data && data.length > 0) {
                 tbody.innerHTML = data.map((user, index) => `
                     <tr>
@@ -479,7 +490,7 @@
         async function loadTopChats() {
             const data = await fetchAPI('top-chats?limit=10');
             const tbody = document.getElementById('topChatsTable');
-            
+
             if (data && data.length > 0) {
                 tbody.innerHTML = data.map((chat, index) => `
                     <tr>
@@ -496,7 +507,7 @@
         async function loadAllData() {
             const btn = document.querySelector('.refresh-btn');
             btn.classList.add('spinning');
-            
+
             await Promise.all([
                 loadOverview(),
                 loadDailyStats(),
@@ -504,7 +515,7 @@
                 loadTopUsers(),
                 loadTopChats()
             ]);
-            
+
             btn.classList.remove('spinning');
         }
 
@@ -515,4 +526,5 @@
         setInterval(loadAllData, 30000);
     </script>
 </body>
+
 </html>
