@@ -310,7 +310,10 @@ async def drama_page_callback(_, callback: types.CallbackQuery):
     
     keyboard = create_episode_keyboard(episodes, book_id, page)
     
-    await callback.message.edit_reply_markup(reply_markup=keyboard)
+    try:
+        await callback.message.edit_reply_markup(reply_markup=keyboard)
+    except Exception:
+        pass
 
 
 @app.on_callback_query(filters.regex(r"^drama_ep:"))
@@ -371,7 +374,10 @@ async def drama_play_callback(_, callback: types.CallbackQuery):
     text += f"Klik tombol di bawah untuk menonton.</blockquote>"
     
     keyboard = types.InlineKeyboardMarkup([
-        [types.InlineKeyboardButton("▶️ Putar", callback_data=f"drama_stream:{book_id}:{ep_index}:{quality}")],
+        [
+            types.InlineKeyboardButton("▶️ Putar", callback_data=f"drama_stream:{book_id}:{ep_index}:{quality}"),
+            types.InlineKeyboardButton("📥 Unduh", callback_data=f"drama_download:{book_id}:{ep_index}:{quality}")
+        ],
         [types.InlineKeyboardButton("🌐 Nonton di Browser", url=video_url)],
         [types.InlineKeyboardButton("◀️ Kembali", callback_data=f"drama_ep:{book_id}:{ep_index}")]
     ])
@@ -433,6 +439,56 @@ async def drama_stream_callback(_, callback: types.CallbackQuery):
     msg = await callback.message.reply_text("🔄 <b>Memproses stream...</b>", parse_mode=enums.ParseMode.HTML)
     media.message_id = msg.id
     await anon.play_media(chat_id=chat_id, message=msg, media=media)
+
+
+@app.on_callback_query(filters.regex(r"^drama_download:"))
+async def drama_download_callback(_, callback: types.CallbackQuery):
+    """Mengunduh episode drama."""
+    parts = callback.data.split(":")
+    book_id = parts[1]
+    ep_index = int(parts[2])
+    quality = parts[3]
+    
+    await callback.answer("⏳ Memulai unduhan...")
+    
+    episodes = await dramabox.get_all_episodes(book_id)
+    if not episodes or ep_index >= len(episodes):
+        return await callback.answer("❌ Episode tidak ditemukan", show_alert=True)
+    
+    episode = episodes[ep_index]
+    video_url = episode.video_urls.get(quality)
+    
+    if not video_url:
+        return await callback.answer("❌ Kualitas tidak tersedia", show_alert=True)
+        
+    # Mencari judul drama untuk filename
+    dramas = await dramabox.get_trending()
+    drama = next((d for d in dramas if d.book_id == book_id), None)
+    
+    if not drama:
+        dramas = await dramabox.get_latest()
+        drama = next((d for d in dramas if d.book_id == book_id), None)
+        
+    drama_title = drama.title if drama else "DramaBox"
+    
+    # Bersihkan filename
+    safe_title = "".join(x for x in drama_title if x.isalnum() or x in [' ', '-', '_']).strip()
+    safe_ep = "".join(x for x in episode.chapter_name if x.isalnum() or x in [' ', '-', '_']).strip()
+    filename = f"{safe_title} - {safe_ep}.mp4"
+    
+    msg = await callback.message.reply_text(f"⬇️ <b>Mengunduh...</b>\n\n🎬 {drama_title}\n📺 {episode.chapter_name}", parse_mode=enums.ParseMode.HTML)
+    
+    try:
+        await callback.message.reply_video(
+            video=video_url,
+            caption=f"🎬 <b>{drama_title}</b>\n📺 {episode.chapter_name}\n💿 {quality}",
+            file_name=filename,
+            supports_streaming=True
+        )
+        await msg.delete()
+    except Exception as e:
+        await msg.edit_text(f"❌ <b>Gagal mengirim file.</b>\n\nError: {str(e)}", parse_mode=enums.ParseMode.HTML)
+
 
 
 @app.on_callback_query(filters.regex(r"^drama_back:"))
