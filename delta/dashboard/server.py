@@ -255,6 +255,17 @@ async def get_peak_hours(days: int = 7):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@dashboard_app.get("/api/platform-distribution")
+async def get_platform_distribution():
+    """Get platform distribution statistics"""
+    try:
+        data = await db.get_platform_stats()
+        return {"data": data}
+    except Exception as e:
+        logger.error(f"Error getting platform distribution: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @dashboard_app.get("/api/active-calls")
 async def get_active_calls():
     """Get currently active voice calls"""
@@ -360,6 +371,21 @@ async def websocket_endpoint(websocket: WebSocket):
 async def broadcast_stats():
     """Background task to broadcast stats to connected clients"""
     last_data = {}
+    import time
+    
+    # Try importing psutil
+    try:
+        import psutil
+    except ImportError:
+        psutil = None
+        logger.warning("psutil not installed, server stats will be unavailable")
+
+    boot_time = psutil.boot_time() if psutil else time.time()
+    
+    # Network tracking
+    last_network_io = psutil.net_io_counters() if psutil else None
+    last_network_time = time.time()
+
     while True:
         try:
             # 1. Overview Stats
@@ -368,13 +394,50 @@ async def broadcast_stats():
             plays_count = await db.get_queries()
             active_calls = await db.active_callsdb.count_documents({})
             
+            # System Stats
+            sys_stats = None
+            if psutil:
+                try:
+                    cpu = psutil.cpu_percent(interval=None)
+                    ram = psutil.virtual_memory()
+                    disk = psutil.disk_usage('/')
+                    uptime_seconds = int(time.time() - boot_time)
+                    
+                    # Network speed calculation
+                    current_network_io = psutil.net_io_counters()
+                    current_time = time.time()
+                    time_delta = current_time - last_network_time
+                    
+                    upload_speed = 0
+                    download_speed = 0
+                    if last_network_io and time_delta > 0:
+                        upload_speed = (current_network_io.bytes_sent - last_network_io.bytes_sent) / time_delta
+                        download_speed = (current_network_io.bytes_recv - last_network_io.bytes_recv) / time_delta
+                    
+                    last_network_io = current_network_io
+                    last_network_time = current_time
+                    
+                    sys_stats = {
+                        "cpu": cpu,
+                        "ram": ram.percent,
+                        "disk": disk.percent,
+                        "uptime": uptime_seconds,
+                        "network": {
+                            "upload_speed": upload_speed,
+                            "download_speed": download_speed
+                        }
+                    }
+                except Exception as ex:
+                    logger.error(f"Error getting sys stats: {ex}")
+
             overview = {
                 "type": "overview",
                 "data": {
                     "total_users": users_count,
                     "total_chats": chats_count,
                     "total_plays": plays_count,
-                    "active_calls": active_calls
+                    "active_calls": active_calls,
+                    "system": sys_stats
                 }
             }
             

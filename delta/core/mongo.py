@@ -494,7 +494,6 @@ class MongoDB:
                 "$nin": ["Live", "Unknown"],
                 "$not": {"$regex": "^Stream|Live$", "$options": "i"}
             },
-            "thumbnail": {"$exists": True, "$ne": None}
         }
         cursor = self.statsdb.find(query).sort("count", -1).limit(limit)
         results = {}
@@ -633,6 +632,39 @@ class MongoDB:
                         pass
         
         return hourly_counts
+
+    async def get_platform_stats(self) -> dict:
+        """Get distribution of platforms (YouTube, Spotify, SoundCloud, etc.)."""
+        platforms = {"youtube": 0, "spotify": 0, "soundcloud": 0, "local": 0, "other": 0}
+        
+        # Aggregate from statsdb
+        cursor = self.statsdb.find({})
+        async for doc in cursor:
+            track_id = doc.get("_id", "")
+            count = doc.get("count", 0)
+            
+            # Platform detection logic
+            if not track_id:
+                continue
+            
+            track_id_lower = track_id.lower()
+            if "spotify" in track_id_lower or track_id.startswith("spotify:"):
+                platforms["spotify"] += count
+            elif "soundcloud" in track_id_lower:
+                platforms["soundcloud"] += count
+            elif track_id.startswith("file://") or track_id.startswith("/"):
+                platforms["local"] += count
+            elif len(track_id) == 11 and track_id.isalnum():
+                # YouTube video IDs are 11 chars alphanumeric
+                platforms["youtube"] += count
+            else:
+                # Check if it's a YouTube URL pattern
+                if "youtube" in track_id_lower or "youtu.be" in track_id_lower:
+                    platforms["youtube"] += count
+                else:
+                    platforms["other"] += count
+        
+        return platforms
 
     # USER PLAYLIST METHODS
     async def add_to_playlist(self, user_id: int, track_id: str, title: str, duration: str, url: str) -> bool:

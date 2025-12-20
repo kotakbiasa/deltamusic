@@ -48,7 +48,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             border: none;
             cursor: pointer;
@@ -58,6 +57,16 @@
 
         .theme-toggle:hover {
             transform: scale(1.1);
+        }
+
+        .theme-toggle svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .theme-toggle.rotating svg {
+            transform: rotate(180deg);
         }
 
         body {
@@ -436,12 +445,23 @@
 
         /* Adjust body padding */
         body {
-            padding-bottom: 80px;
+            background-color: var(--tg-theme-button-color, #007aff);
+            border-radius: 3px;
+            transition: width 0.3s ease;
         }
 
-        /* Floating Refresh Button - Move up */
-        .fab {
-            bottom: 70px;
+        .status-value-text {
+            font-size: 14px;
+            color: var(--tg-theme-hint-color);
+            margin-left: 12px;
+            width: 40px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .status-right {
+            display: flex;
+            align-items: center;
         }
     </style>
 </head>
@@ -453,7 +473,9 @@
             <p>Statistics Dashboard</p>
         </div>
 
-        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌓</button>
+        <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+            <!-- SVG Icons will be injected by JavaScript -->
+        </button>
 
         <!-- Tab 1: Home -->
         <div id="tab-home" class="tab-content active">
@@ -477,6 +499,41 @@
                 </div>
             </div>
 
+            <div class="section-title">Server Status</div>
+            <div class="card">
+                <div class="status-row">
+                    <div class="status-label">CPU</div>
+                    <div class="status-right">
+                        <div class="status-bar-container">
+                            <div class="status-bar-fill" id="cpuBar" style="width: 0%"></div>
+                        </div>
+                        <div class="status-value-text" id="cpuText">-</div>
+                    </div>
+                </div>
+                <div class="status-row">
+                    <div class="status-label">RAM</div>
+                    <div class="status-right">
+                        <div class="status-bar-container">
+                            <div class="status-bar-fill" id="ramBar" style="width: 0%"></div>
+                        </div>
+                        <div class="status-value-text" id="ramText">-</div>
+                    </div>
+                </div>
+                <div class="status-row">
+                    <div class="status-label">Disk</div>
+                    <div class="status-right">
+                        <div class="status-bar-container">
+                            <div class="status-bar-fill" id="diskBar" style="width: 0%"></div>
+                        </div>
+                        <div class="status-value-text" id="diskText">-</div>
+                    </div>
+                </div>
+                <div class="status-row">
+                    <div class="status-label">Uptime</div>
+                    <div class="status-value-text" style="width: auto;" id="uptimeText">-</div>
+                </div>
+            </div>
+
             <div class="section-title">Peak Usage (Last 7 Days)</div>
             <div class="card">
                 <div class="chart-container">
@@ -493,11 +550,25 @@
                     <canvas id="dailyChart"></canvas>
                 </div>
             </div>
+
+            <div class="section-title">Platform Distribution</div>
+            <div class="card">
+                <div class="chart-container">
+                    <canvas id="platformChart"></canvas>
+                </div>
+            </div>
+
+            <div class="section-title">Network Activity (Real-time)</div>
+            <div class="card">
+                <div class="chart-container">
+                    <canvas id="networkRealtimeChart"></canvas>
+                </div>
+            </div>
         </div>
 
         <!-- Tab 3: Rankings -->
         <div id="tab-rankings" class="tab-content">
-            <div class="section-title">Top Tracks</div>
+            <div class="section-title">Top Plays</div>
             <div class="card scrollable-card" id="topTracksList">
                 <div class="status-text">Loading...</div>
             </div>
@@ -576,23 +647,36 @@
             }
         }
 
+        // SVG Icons
+        const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>`;
+        const moonIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+
         function toggleTheme() {
             const body = document.body;
             const btn = document.getElementById('themeBtn');
 
-            if (body.classList.contains('dark-theme')) {
-                body.classList.remove('dark-theme');
-                btn.textContent = '🌙';
-                localStorage.setItem('theme', 'light');
-            } else {
-                body.classList.add('dark-theme');
-                btn.textContent = '☀️';
-                localStorage.setItem('theme', 'dark');
-            }
+            // Add rotation animation
+            btn.classList.add('rotating');
 
-            // Reload chart to update colors
-            loadChart();
-            loadPeakHours();
+            setTimeout(() => {
+                if (body.classList.contains('dark-theme')) {
+                    body.classList.remove('dark-theme');
+                    btn.innerHTML = moonIcon;
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    body.classList.add('dark-theme');
+                    btn.innerHTML = sunIcon;
+                    localStorage.setItem('theme', 'dark');
+                }
+
+                // Remove rotation class after animation
+                setTimeout(() => btn.classList.remove('rotating'), 500);
+
+                // Reload chart to update colors
+                loadChart();
+                loadPeakHours();
+                loadPlatformDistribution();
+            }, 250);
         }
 
         async function fetchAPI(endpoint) {
@@ -660,6 +744,7 @@
                             ticks: { color: gridColor, font: { size: 10 } }
                         },
                         y: {
+                            beginAtZero: true,
                             grid: { color: 'rgba(128,128,128,0.1)', borderDash: [5, 5] },
                             ticks: { color: gridColor, font: { size: 10 }, maxTicksLimit: 5 }
                         }
@@ -780,6 +865,156 @@
             renderList('topChatsList', chats, 'chat_name', null, 'play_count', 'chat');
         }
 
+        let platformChart = null;
+        async function loadPlatformDistribution() {
+            const response = await fetchAPI('platform-distribution');
+            if (!response) return;
+
+            const data = response.data;
+            const ctx = document.getElementById('platformChart');
+
+            // Filter out platforms with 0 plays
+            const labels = [];
+            const values = [];
+            const colors = {
+                youtube: '#FF0000',
+                spotify: '#1DB954',
+                soundcloud: '#FF5500',
+                local: '#6c757d',
+                other: '#9b59b6'
+            };
+            const bgColors = [];
+
+            for (const [platform, count] of Object.entries(data)) {
+                if (count > 0) {
+                    labels.push(platform.charAt(0).toUpperCase() + platform.slice(1));
+                    values.push(count);
+                    bgColors.push(colors[platform] || '#cccccc');
+                }
+            }
+
+            if (platformChart) platformChart.destroy();
+
+            const style = getComputedStyle(document.body);
+            const textColor = style.getPropertyValue('--tg-theme-text-color').trim() || '#000000';
+
+            platformChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: bgColors,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'bottom',
+                            labels: {
+                                color: textColor,
+                                font: { size: 12 },
+                                padding: 12
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Network monitoring
+        let networkRealtimeChart = null;
+        let networkDataPoints = {
+            upload: [],
+            download: [],
+            labels: []
+        };
+        const MAX_NETWORK_POINTS = 60; // 5 minutes at 5s intervals
+
+        function initNetworkRealtimeChart() {
+            const ctx = document.getElementById('networkRealtimeChart');
+            const style = getComputedStyle(document.body);
+            const textColor = style.getPropertyValue('--tg-theme-text-color').trim() || '#000000';
+            const gridColor = style.getPropertyValue('--tg-theme-hint-color').trim() || '#8e8e93';
+
+            networkRealtimeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: networkDataPoints.labels,
+                    datasets: [
+                        {
+                            label: 'Download',
+                            data: networkDataPoints.download,
+                            borderColor: '#1DB954',
+                            backgroundColor: 'rgba(29, 185, 84, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Upload',
+                            data: networkDataPoints.upload,
+                            borderColor: '#0a84ff',
+                            backgroundColor: 'rgba(10, 132, 255, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: { color: textColor }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(128,128,128,0.1)' },
+                            ticks: {
+                                color: gridColor,
+                                callback: function (value) {
+                                    return (value / 1024 / 1024).toFixed(1) + ' MB/s';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateNetworkChart(uploadSpeed, downloadSpeed) {
+            if (!networkRealtimeChart) {
+                initNetworkRealtimeChart();
+            }
+
+            // Add new data point
+            networkDataPoints.upload.push(uploadSpeed);
+            networkDataPoints.download.push(downloadSpeed);
+            networkDataPoints.labels.push('');
+
+            // Keep only last MAX_NETWORK_POINTS
+            if (networkDataPoints.upload.length > MAX_NETWORK_POINTS) {
+                networkDataPoints.upload.shift();
+                networkDataPoints.download.shift();
+                networkDataPoints.labels.shift();
+            }
+
+            networkRealtimeChart.update();
+        }
+
         let ws = null;
         let reconnectInterval = null;
 
@@ -821,11 +1056,39 @@
             };
         }
 
+        function formatUptime(seconds) {
+            if (!seconds) return '-';
+            const d = Math.floor(seconds / (3600 * 24));
+            const h = Math.floor((seconds % (3600 * 24)) / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            if (d > 0) return `${d}d ${h}h`;
+            return `${h}h ${m}m`;
+        }
+
         function updateOverview(data) {
             document.getElementById('totalUsers').textContent = formatNumber(data.total_users);
             document.getElementById('totalChats').textContent = formatNumber(data.total_chats);
             document.getElementById('totalPlays').textContent = formatNumber(data.total_plays);
             document.getElementById('activeCalls').textContent = formatNumber(data.active_calls);
+
+            // Update System Stats
+            if (data.system) {
+                document.getElementById('cpuBar').style.width = `${data.system.cpu}%`;
+                document.getElementById('cpuText').textContent = `${Math.round(data.system.cpu)}%`;
+
+                document.getElementById('ramBar').style.width = `${data.system.ram}%`;
+                document.getElementById('ramText').textContent = `${Math.round(data.system.ram)}%`;
+
+                document.getElementById('diskBar').style.width = `${data.system.disk}%`;
+                document.getElementById('diskText').textContent = `${Math.round(data.system.disk)}%`;
+
+                document.getElementById('uptimeText').textContent = formatUptime(data.system.uptime);
+
+                // Update network chart if data available
+                if (data.system.network) {
+                    updateNetworkChart(data.system.network.upload_speed, data.system.network.download_speed);
+                }
+            }
         }
 
         async function loadAllData() {
@@ -836,6 +1099,7 @@
                 loadOverview(), // Initial load
                 loadChart(),
                 loadPeakHours(),
+                loadPlatformDistribution(),
                 loadLists()
             ]);
 
@@ -849,19 +1113,21 @@
                 tg.expand();
             }
 
-            // Theme init...
+            // Theme init with SVG icons
             const savedTheme = localStorage.getItem('theme');
+            const btn = document.getElementById('themeBtn');
+
             if (savedTheme === 'dark') {
                 document.body.classList.add('dark-theme');
-                document.getElementById('themeBtn').textContent = '☀️';
+                btn.innerHTML = sunIcon;
             } else if (savedTheme === 'light') {
                 document.body.classList.remove('dark-theme');
-                document.getElementById('themeBtn').textContent = '🌙';
+                btn.innerHTML = moonIcon;
             } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
                 document.body.classList.add('dark-theme');
-                document.getElementById('themeBtn').textContent = '☀️';
+                btn.innerHTML = sunIcon;
             } else {
-                document.getElementById('themeBtn').textContent = '🌙';
+                btn.innerHTML = moonIcon;
             }
 
             loadAllData();
