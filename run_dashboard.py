@@ -28,7 +28,7 @@ def check_dependencies():
     if missing:
         print("\n⚠️  Missing dependencies detected!")
         print(f"   Run: pip install {' '.join(missing)}")
-        print(f"   Or: pip install -r dashboard/requirements.txt\n")
+        print(f"   Or: pip install -r anony/dashboard/requirements.txt\n")
         return False
     
     print("✅ All dependencies installed!\n")
@@ -40,8 +40,8 @@ def check_files():
     print("📁 Checking required files...")
     
     required_files = [
-        "dashboard/server.py",
-        "dashboard/index.html",
+        "anony/dashboard/server.py",
+        "anony/dashboard/index.html",
     ]
     
     all_exist = True
@@ -78,7 +78,7 @@ def start_dashboard():
     # Import and run
     try:
         import uvicorn
-        from dashboard.server import dashboard_app
+        from anony.dashboard.server import dashboard_app
         
         uvicorn.run(
             dashboard_app,

@@ -8,6 +8,8 @@ Advanced Statistics Dashboard - FastAPI Backend
 
 import asyncio
 from datetime import datetime, timedelta
+from datetime import datetime, timedelta
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from fastapi import FastAPI, HTTPException
@@ -72,14 +74,16 @@ class DailyStats(BaseModel):
 @dashboard_app.get("/")
 async def read_root():
     """Serve the dashboard HTML"""
-    with open("dashboard/index.html", "r", encoding="utf-8") as f:
+    index_path = Path(__file__).parent / "index.html"
+    with open(index_path, "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
 
 
 @dashboard_app.get("/miniapp")
 async def read_miniapp():
     """Serve the Telegram Mini App HTML"""
-    with open("dashboard/miniapp.html", "r", encoding="utf-8") as f:
+    miniapp_path = Path(__file__).parent / "miniapp.html"
+    with open(miniapp_path, "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
 
 
@@ -252,7 +256,8 @@ async def get_group_stats(chat_id: int, limit: int = 10):
 
 # Mount static files
 try:
-    dashboard_app.mount("/static", StaticFiles(directory="dashboard/static"), name="static")
+    static_path = Path(__file__).parent / "static"
+    dashboard_app.mount("/static", StaticFiles(directory=str(static_path)), name="static")
 except:
     logger.warning("Dashboard static files not found, creating directory...")
 

@@ -41,6 +41,17 @@ async def main():
     cleanup_task = asyncio.create_task(cleanup.start())
     tasks.append(cleanup_task)
     logger.info("🧹 File cleanup scheduler started")
+
+    # Start Dashboard Server
+    try:
+        from anony.dashboard.server import run_dashboard_server
+        dashboard_task = asyncio.create_task(run_dashboard_server())
+        tasks.append(dashboard_task)
+        logger.info("📊 Dashboard server task started")
+    except ImportError:
+        logger.warning("⚠️ Dashboard module not found, skipping dashboard startup")
+    except Exception as e:
+        logger.error(f"❌ Failed to start dashboard: {e}")
     
     logger.info("✅ Bot is ready and running!")
     logger.info("🎵 ═══════════════════════════════════════════════ 🎵")
