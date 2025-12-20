@@ -132,10 +132,23 @@ async def get_top_tracks(limit: int = 10):
 async def get_top_users(limit: int = 10):
     """Get most active users globally"""
     try:
-        users_data = await db.get_top_users(limit=limit)
+        # Identify excluded IDs (Bot and Assistants)
+        excluded_ids = {telegram_app.id}
+        from delta import userbot
+        for client in userbot.clients:
+            if hasattr(client, 'id'):
+                excluded_ids.add(client.id)
+            elif hasattr(client, 'me') and client.me:
+                excluded_ids.add(client.me.id)
+        
+        # Fetch more users to allow for filtering
+        users_data = await db.get_top_users(limit=limit + 5)
         
         result = []
         for user_id, count in users_data.items():
+            if user_id in excluded_ids:
+                continue
+            
             # Try to get username from Telegram
             try:
                 user = await telegram_app.get_users(user_id)
@@ -148,6 +161,9 @@ async def get_top_users(limit: int = 10):
                 "username": username,
                 "play_count": count
             })
+            
+            if len(result) >= limit:
+                break
         
         return result
     except Exception as e:

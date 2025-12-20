@@ -33,14 +33,33 @@ async def stats_command(_, m: types.Message):
     
     # Get top user
     top_user_text = ""
+    # Get top user (fetch more to filter bots)
+    group_users = await db.get_group_top_users(chat_id, limit=5)
+    
+    top_user_text = ""
     if group_users:
-        top_user_id = list(group_users.keys())[0]
-        top_user_plays = list(group_users.values())[0]
-        try:
-            user = await app.get_users(top_user_id)
-            top_user_text = f"\n👤 <b>Top User:</b> <a href='tg://user?id={top_user_id}'>{user.first_name}</a> ({utils.format_number(top_user_plays)} plays)"
-        except:
-            top_user_text = f"\n👤 <b>Top User:</b> Deleted User"
+        # Identify excluded IDs (Bot and Assistants)
+        excluded_ids = {app.id}
+        for client in userbot.clients:
+            if hasattr(client, 'id'):
+                excluded_ids.add(client.id)
+            elif hasattr(client, 'me') and client.me:
+                excluded_ids.add(client.me.id)
+
+        for user_id, plays in group_users.items():
+            if user_id in excluded_ids:
+                continue
+                
+            try:
+                user = await app.get_users(user_id)
+                top_user_text = f"\n👤 <b>Top User:</b> <a href='tg://user?id={user_id}'>{user.first_name}</a> ({utils.format_number(plays)} plays)"
+                break
+            except:
+                continue
+        
+        if not top_user_text and group_users:
+             # If all top users were bots or deleted, show nothing or generic
+             pass
     
     # Get group ranking
     all_groups = await db.get_top_chats(limit=1000)
@@ -151,7 +170,21 @@ async def get_stats_callback(_, query: types.CallbackQuery):
         # Calculate max for progress bar
         max_plays = max(stats.values()) if stats else 1
         
-        for item_id, count in list(stats.items())[:10]:
+        # Identify excluded IDs (Bot and Assistants)
+        excluded_ids = {app.id}
+        from delta import userbot
+        for client in userbot.clients:
+            if hasattr(client, 'id'):
+                excluded_ids.add(client.id)
+            elif hasattr(client, 'me') and client.me:
+                excluded_ids.add(client.me.id)
+
+        for item_id, count in list(stats.items()):
+            if what in ["Users", "UsersHere"] and item_id in excluded_ids:
+                continue
+                
+            if limit >= 10:
+                break
             try:
                 if what in ["Users", "UsersHere"]:
                     try:
