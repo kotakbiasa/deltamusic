@@ -370,6 +370,32 @@
             -webkit-overflow-scrolling: touch;
         }
 
+        /* Custom Scrollbar Styling */
+        .scrollable-card::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scrollable-card::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .scrollable-card::-webkit-scrollbar-thumb {
+            background: var(--tg-theme-button-color, #007aff);
+            border-radius: 10px;
+            opacity: 0.5;
+        }
+
+        .scrollable-card::-webkit-scrollbar-thumb:hover {
+            background: var(--tg-theme-button-color, #007aff);
+            opacity: 1;
+        }
+
+        /* Firefox Scrollbar */
+        .scrollable-card {
+            scrollbar-width: thin;
+            scrollbar-color: var(--tg-theme-button-color, #007aff) transparent;
+        }
+
         @keyframes spin {
             from {
                 transform: rotate(0deg);
@@ -655,12 +681,12 @@
             </div>
 
             <div class="section-title">Most Active Users</div>
-            <div class="card" id="topUsersList">
+            <div class="card scrollable-card" id="topUsersList">
                 <div class="status-text">Loading...</div>
             </div>
 
             <div class="section-title">Top Groups</div>
-            <div class="card" id="topChatsList">
+            <div class="card scrollable-card" id="topChatsList">
                 <div class="status-text">Loading...</div>
             </div>
         </div>
