@@ -125,6 +125,12 @@
             border-color: rgba(128, 128, 128, 0.4);
         }
 
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 24px 0 16px;
+        }
+
         .header h1 {
             font-size: 28px;
             font-weight: 700;
@@ -744,8 +750,6 @@
                 <div>Rankings</div>
             </button>
         </nav>
-
-        <button class="fab" onclick="loadAllData()">↻</button>
     </div>
 
 
@@ -1024,8 +1028,8 @@
         async function loadLists() {
             const [tracks, users, chats] = await Promise.all([
                 fetchAPI('top-tracks?limit=100'),
-                fetchAPI('top-users?limit=5'),
-                fetchAPI('top-chats?limit=5')
+                fetchAPI('top-users?limit=100'),
+                fetchAPI('top-chats?limit=100')
             ]);
 
             renderList('topTracksList', tracks, 'title', null, 'play_count', 'track');
