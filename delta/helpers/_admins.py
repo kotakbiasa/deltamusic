@@ -29,7 +29,9 @@ def admin_check(func):
         user_id = update.from_user.id
         admins = await db.get_admins(chat_id)
 
-        if user_id in app.sudoers:
+        # Owner and sudoers bypass admin check
+        from delta import config
+        if user_id in app.sudoers or user_id == config.OWNER_ID:
             return await func(_, update, *args, **kwargs)
 
         if user_id not in admins:
@@ -52,7 +54,9 @@ def can_manage_vc(func):
         )
         user_id = update.from_user.id
 
-        if user_id in app.sudoers:
+        # Owner and sudoers bypass VC management check
+        from delta import config
+        if user_id in app.sudoers or user_id == config.OWNER_ID:
             return await func(_, update, *args, **kwargs)
 
         if await db.is_auth(chat_id, user_id):
@@ -71,7 +75,11 @@ def can_manage_vc(func):
 
 
 async def is_admin(chat_id: int, user_id: int) -> bool:
-    from delta import app, db
+    from delta import app, config, db
+    
+    # Owner always has admin rights
+    if user_id == config.OWNER_ID:
+        return True
     
     if user_id in await db.get_admins(chat_id):
         return True
