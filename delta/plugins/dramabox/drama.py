@@ -11,7 +11,10 @@ Command untuk mengakses konten DramaBox dari Telegram.
 from pyrogram import enums, filters, types
 from delta import app, anon, db, queue
 from delta.helpers import Media, is_admin
+from delta.helpers._graceful import with_flood_wait_handler
 from .api import dramabox, Drama, Episode
+import time
+from pyrogram.errors import FloodWait
 
 
 # ==================== HELPER FUNCTIONS ====================
@@ -255,6 +258,7 @@ async def drama_latest_command(_, message: types.Message):
 # ==================== CALLBACK HANDLERS ====================
 
 @app.on_callback_query(filters.regex(r"^drama_info:"))
+@with_flood_wait_handler(max_retries=2)
 async def drama_info_callback(_, callback: types.CallbackQuery):
     """Menampilkan detail drama dan daftar episode."""
     book_id = callback.data.split(":")[1]
@@ -299,6 +303,7 @@ async def drama_info_callback(_, callback: types.CallbackQuery):
 
 
 @app.on_callback_query(filters.regex(r"^drama_page:"))
+@with_flood_wait_handler(max_retries=2)
 async def drama_page_callback(_, callback: types.CallbackQuery):
     """Handle pagination episode."""
     parts = callback.data.split(":")
@@ -320,6 +325,7 @@ async def drama_page_callback(_, callback: types.CallbackQuery):
 
 
 @app.on_callback_query(filters.regex(r"^drama_ep:"))
+@with_flood_wait_handler(max_retries=2)
 async def drama_episode_callback(_, callback: types.CallbackQuery):
     """Menampilkan pilihan kualitas untuk episode."""
     parts = callback.data.split(":")
@@ -355,6 +361,7 @@ async def drama_episode_callback(_, callback: types.CallbackQuery):
 
 
 @app.on_callback_query(filters.regex(r"^drama_play:"))
+@with_flood_wait_handler(max_retries=2)
 async def drama_play_callback(_, callback: types.CallbackQuery):
     """Mengirimkan link streaming."""
     parts = callback.data.split(":")
@@ -526,13 +533,17 @@ async def drama_download_callback(_, callback: types.CallbackQuery):
                 total_size = int(response.headers.get('content-length', 0))
                 downloaded = 0
                 
+
+                last_update_time = 0
+                
                 with open(local_path, 'wb') as f:
                     async for chunk in response.content.iter_chunked(1024 * 1024):  # 1MB chunks
                         f.write(chunk)
                         downloaded += len(chunk)
                         
-                        # Update progress every 10MB
-                        if downloaded % (10 * 1024 * 1024) < 1024 * 1024:
+                        # Update progress every 4 seconds (to avoid FloodWait)
+                        now = time.time()
+                        if (now - last_update_time > 4) and (downloaded % (5 * 1024 * 1024) < 1024 * 1024):
                             progress = (downloaded / total_size * 100) if total_size > 0 else 0
                             size_mb = downloaded / (1024 * 1024)
                             total_mb = total_size / (1024 * 1024)
@@ -548,6 +559,9 @@ async def drama_download_callback(_, callback: types.CallbackQuery):
                                     f"</blockquote>",
                                     parse_mode=enums.ParseMode.HTML
                                 )
+                                last_update_time = now
+                            except FloodWait as e:
+                                await asyncio.sleep(e.value)
                             except:
                                 pass
         
@@ -586,6 +600,7 @@ async def drama_download_callback(_, callback: types.CallbackQuery):
 
 
 @app.on_callback_query(filters.regex(r"^drama_back:"))
+@with_flood_wait_handler(max_retries=2)
 async def drama_back_callback(_, callback: types.CallbackQuery):
     """Kembali ke daftar episode."""
     book_id = callback.data.split(":")[1]
@@ -613,6 +628,7 @@ async def drama_close_callback(_, callback: types.CallbackQuery):
 
 
 @app.on_callback_query(filters.regex(r"^drama_list:"))
+@with_flood_wait_handler(max_retries=2)
 async def drama_list_callback(_, callback: types.CallbackQuery):
     """Handle drama list pagination."""
     parts = callback.data.split(":")
