@@ -55,6 +55,10 @@ async def pm_auto_clear(client, message: Message):
     # Allow owner
     if user_id == config.OWNER_ID:
         return
+
+    # Allow bots
+    if message.from_user.is_bot:
+        return
     
     # Allow approved users
     if user_id in APPROVED_USERS:
