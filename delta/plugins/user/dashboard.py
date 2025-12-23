@@ -9,6 +9,7 @@ Dashboard Admin Commands - Control dashboard from Telegram
 from pyrogram import enums, filters, types
 
 from delta import app, config, logger
+from delta.helpers import not_blacklisted
 
 
 # Custom sudo filter that checks at runtime
@@ -21,7 +22,7 @@ def sudo_filter(_, __, message):
 sudo_users_filter = filters.create(sudo_filter)
 
 
-@app.on_message(filters.command(["dashboard"]) & ~app.bl_users)
+@app.on_message(filters.command(["dashboard"]) & not_blacklisted)
 async def dashboard_command(_, message: types.Message):
     """
     Dashboard management (Admin/Sudo) or Mini App access (All users)

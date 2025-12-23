@@ -6,10 +6,10 @@
 from pyrogram import enums, filters, types
 
 from delta import app, config, db, queue
-from delta.helpers import utils
+from delta.helpers import utils, not_blacklisted
 
 
-@app.on_message(filters.command(["shuffle"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["shuffle"]) & filters.group & not_blacklisted)
 async def shuffle_command(_, message: types.Message):
     """Shuffle the queue."""
     # Auto-delete command if enabled

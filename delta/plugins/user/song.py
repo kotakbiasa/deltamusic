@@ -6,9 +6,10 @@
 from pyrogram import enums, filters, types
 
 from delta import app, config, yt
+from delta.helpers import not_blacklisted
 
 
-@app.on_message(filters.command(["song", "mp3"]) & ~app.bl_users)
+@app.on_message(filters.command(["song", "mp3"]) & not_blacklisted)
 async def song_command(_, message: types.Message):
     """Download and send highest quality audio from YouTube - Auto download."""
     

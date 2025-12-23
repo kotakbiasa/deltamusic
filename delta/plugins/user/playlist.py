@@ -6,10 +6,10 @@
 from pyrogram import enums, filters, types
 
 from delta import app, db
-from delta.helpers import buttons
+from delta.helpers import buttons, not_blacklisted
 
 
-@app.on_message(filters.command(["playlist", "myplaylist"]) & ~app.bl_users)
+@app.on_message(filters.command(["playlist", "myplaylist"]) & not_blacklisted)
 async def playlist_command(_, message: types.Message):
     """Show user's saved playlist."""
     user_id = message.from_user.id
@@ -55,7 +55,7 @@ async def playlist_command(_, message: types.Message):
     )
 
 
-@app.on_callback_query(filters.regex("pl_") & ~app.bl_users)
+@app.on_callback_query(filters.regex("pl_") & not_blacklisted)
 async def playlist_callback(_, query: types.CallbackQuery):
     """Handle playlist callbacks."""
     data = query.data.split()

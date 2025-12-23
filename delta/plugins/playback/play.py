@@ -8,7 +8,7 @@ from pathlib import Path
 from pyrogram import enums, filters, types
 
 from delta import anon, app, config, db, queue, tg, yt
-from delta.helpers import buttons, utils
+from delta.helpers import buttons, utils, not_blacklisted
 from delta.helpers._play import checkUB
 
 
@@ -23,7 +23,7 @@ def playlist_to_queue(chat_id: int, tracks: list) -> str:
 @app.on_message(
     filters.command(["play", "playforce", "vplay", "vplayforce"])
     & filters.group
-    & ~app.bl_users
+    & not_blacklisted
 )
 @checkUB
 async def play_hndlr(

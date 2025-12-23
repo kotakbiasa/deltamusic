@@ -7,10 +7,10 @@ from py_yt import VideosSearch
 from pyrogram import types
 
 from delta import app
-from delta.helpers import buttons
+from delta.helpers import buttons, not_blacklisted
 
 
-@app.on_inline_query(~app.bl_users)
+@app.on_inline_query(not_blacklisted)
 async def inline_query_handler(_, query: types.InlineQuery):
     text = query.query.strip().lower()
     if not text:

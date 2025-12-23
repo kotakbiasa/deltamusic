@@ -6,10 +6,10 @@
 from pyrogram import enums, filters, types
 
 from delta import app, db, queue
-from delta.helpers import buttons
+from delta.helpers import buttons, not_blacklisted
 
 
-@app.on_message(filters.command(["queue", "q"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["queue", "q"]) & filters.group & not_blacklisted)
 async def _queue(_, message: types.Message):
     from delta import config
     from delta.helpers import utils

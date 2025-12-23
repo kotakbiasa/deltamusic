@@ -8,22 +8,22 @@ import re
 from pyrogram import enums, filters, types
 
 from delta import anon, app, db, queue, tg, yt
-from delta.helpers import admin_check, buttons, can_manage_vc
+from delta.helpers import admin_check, buttons, can_manage_vc, not_blacklisted
 
 
-@app.on_callback_query(filters.regex("cancel_dl") & ~app.bl_users)
+@app.on_callback_query(filters.regex("cancel_dl") & not_blacklisted)
 async def cancel_dl(_, query: types.CallbackQuery):
     await query.answer()
     await tg.cancel(query)
 
 
-@app.on_callback_query(filters.regex("^noop$") & ~app.bl_users)
+@app.on_callback_query(filters.regex("^noop$") & not_blacklisted)
 async def noop_callback(_, query: types.CallbackQuery):
     """Handle no-operation callbacks (for non-clickable label buttons)"""
     await query.answer()
 
 
-@app.on_callback_query(filters.regex("controls") & ~app.bl_users)
+@app.on_callback_query(filters.regex("controls") & not_blacklisted)
 @can_manage_vc
 async def _controls(_, query: types.CallbackQuery):
     args = query.data.split()
@@ -214,7 +214,7 @@ async def _controls(_, query: types.CallbackQuery):
         pass
 
 
-@app.on_callback_query(filters.regex("help") & ~app.bl_users)
+@app.on_callback_query(filters.regex("help") & not_blacklisted)
 async def _help(_, query: types.CallbackQuery):
     data = query.data.split()
     if len(data) == 1:
@@ -251,7 +251,7 @@ async def _help(_, query: types.CallbackQuery):
     )
 
 
-@app.on_callback_query(filters.regex("donate") & ~app.bl_users)
+@app.on_callback_query(filters.regex("donate") & not_blacklisted)
 async def _donate_cb(_, query: types.CallbackQuery):
     """Handle donate button click and show donation info."""
     from delta import config
@@ -270,7 +270,7 @@ async def _donate_cb(_, query: types.CallbackQuery):
 
 
 # SETTINGS COMMAND
-@app.on_message(filters.command(["settings"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["settings"]) & filters.group & not_blacklisted)
 async def player_settings_cmd(_, message: types.Message):
     """Display player settings panel."""
     chat_id = message.chat.id
@@ -308,7 +308,7 @@ async def player_settings_cmd(_, message: types.Message):
     )
 
 
-@app.on_callback_query(filters.regex("player_settings") & ~app.bl_users)
+@app.on_callback_query(filters.regex("player_settings") & not_blacklisted)
 @admin_check
 async def _player_settings_cb(_, query: types.CallbackQuery):
     """Handle player settings callback."""

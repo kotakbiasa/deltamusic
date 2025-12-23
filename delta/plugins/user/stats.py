@@ -12,11 +12,11 @@ from pyrogram import enums, filters, types
 from pyrogram.types import InputMediaPhoto
 
 from delta import app, config, db, userbot
-from delta.helpers import buttons
+from delta.helpers import buttons, not_blacklisted
 from delta.plugins import all_modules
 
 
-@app.on_message(filters.command(["stats"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["stats"]) & filters.group & not_blacklisted)
 async def stats_command(_, m: types.Message):
     """Main stats command with button navigation."""
     from delta.helpers import utils
@@ -85,7 +85,7 @@ async def stats_command(_, m: types.Message):
     )
 
 
-@app.on_callback_query(filters.regex("GetStatsNow") & ~app.bl_users)
+@app.on_callback_query(filters.regex("GetStatsNow") & not_blacklisted)
 async def get_stats_callback(_, query: types.CallbackQuery):
     """Handle stats data requests (Tracks/Users/Chats/Here)."""
     try:
@@ -243,7 +243,7 @@ async def get_stats_callback(_, query: types.CallbackQuery):
         )
 
 
-@app.on_callback_query(filters.regex("TopOverall") & ~app.bl_users)
+@app.on_callback_query(filters.regex("TopOverall") & not_blacklisted)
 async def overall_stats_callback(_, query: types.CallbackQuery):
     """Display bot info and stats."""
     try:
@@ -295,7 +295,7 @@ async def overall_stats_callback(_, query: types.CallbackQuery):
         )
 
 
-@app.on_callback_query(filters.regex("bot_stats_sudo") & ~app.bl_users)
+@app.on_callback_query(filters.regex("bot_stats_sudo") & not_blacklisted)
 async def sudo_stats_callback(_, query: types.CallbackQuery):
     """System info for sudo users only."""
     if query.from_user.id not in app.sudoers:
@@ -349,7 +349,7 @@ async def sudo_stats_callback(_, query: types.CallbackQuery):
         )
 
 
-@app.on_callback_query(filters.regex("stats_back") & ~app.bl_users)
+@app.on_callback_query(filters.regex("stats_back") & not_blacklisted)
 async def stats_back_callback(_, query: types.CallbackQuery):
     """Back button - return to main stats menu."""
     try:
@@ -377,7 +377,7 @@ async def stats_back_callback(_, query: types.CallbackQuery):
         )
 
 
-@app.on_callback_query(filters.regex("stats_close") & ~app.bl_users)
+@app.on_callback_query(filters.regex("stats_close") & not_blacklisted)
 async def stats_close_callback(_, query: types.CallbackQuery):
     """Close button - delete stats message."""
     try:

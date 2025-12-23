@@ -10,7 +10,7 @@ Command untuk mengakses konten DramaBox dari Telegram.
 
 from pyrogram import enums, filters, types
 from delta import app, anon, db, queue
-from delta.helpers import Media, is_admin
+from delta.helpers import Media, is_admin, not_blacklisted
 from delta.helpers._graceful import with_flood_wait_handler
 from .api import dramabox, Drama, Episode
 import time
@@ -171,7 +171,7 @@ def create_numbered_drama_keyboard(dramas: list[Drama], page: int = 0, search_ty
 
 # ==================== COMMAND HANDLERS ====================
 
-@app.on_message(filters.command(["drama", "dramabox"]) & ~app.bl_users)
+@app.on_message(filters.command(["drama", "dramabox"]) & not_blacklisted)
 async def drama_command(_, message: types.Message):
     """Mencari drama atau menampilkan trending jika tanpa query."""
     
@@ -211,7 +211,7 @@ async def drama_command(_, message: types.Message):
     await mystic.edit_text(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
 
 
-@app.on_message(filters.command(["dramatrending", "dt"]) & ~app.bl_users)
+@app.on_message(filters.command(["dramatrending", "dt"]) & not_blacklisted)
 async def drama_trending_command(_, message: types.Message):
     """Menampilkan drama trending."""
     
@@ -233,7 +233,7 @@ async def drama_trending_command(_, message: types.Message):
     await mystic.edit_text(text, parse_mode=enums.ParseMode.HTML, reply_markup=keyboard)
 
 
-@app.on_message(filters.command(["dramaterbaru", "dn"]) & ~app.bl_users)
+@app.on_message(filters.command(["dramaterbaru", "dn"]) & not_blacklisted)
 async def drama_latest_command(_, message: types.Message):
     """Menampilkan drama terbaru."""
     

@@ -6,10 +6,10 @@
 from pyrogram import enums, filters, types
 
 from delta import anon, app, db
-from delta.helpers import admin_check
+from delta.helpers import admin_check, not_blacklisted
 
 
-@app.on_message(filters.command(["stop", "end"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["stop", "end"]) & filters.group & not_blacklisted)
 @admin_check
 async def stop(_, message: types.Message):
     if not await db.get_call(message.chat.id):

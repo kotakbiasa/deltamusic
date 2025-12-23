@@ -8,9 +8,10 @@ import asyncio
 from pyrogram import enums, filters, types
 
 from delta import anon, app, boot, config
+from delta.helpers import not_blacklisted
 
 
-@app.on_message(filters.command(["ping"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["ping"]) & filters.group & not_blacklisted)
 async def ping(_, message: types.Message):
     start = asyncio.get_event_loop().time()
     m = await message.reply_photo(

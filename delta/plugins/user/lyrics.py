@@ -7,6 +7,7 @@ from pyrogram import enums, filters, types
 from delta import app, config, queue
 from delta.helpers._decorators import command_limiter, require_rate_limit, safe_execute
 from delta.helpers._lyrics import lyrics_searcher
+from delta.helpers import not_blacklisted
 
 
 # Custom sudo filter that checks at runtime
@@ -22,7 +23,7 @@ sudo_users_filter = filters.create(sudo_filter)
 @app.on_message(
     filters.command(["lyrics", "lirik"]) 
     & filters.group 
-    & ~app.bl_users
+    & not_blacklisted
 )
 @require_rate_limit(command_limiter)
 @safe_execute(send_error=True)

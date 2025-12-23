@@ -6,10 +6,10 @@ import asyncio
 from pyrogram import enums, filters, types
 
 from delta import app, config, db
-from delta.helpers import buttons, utils
+from delta.helpers import buttons, utils, not_blacklisted
 
 
-@app.on_message(filters.command(["help"]) & filters.private & ~app.bl_users)
+@app.on_message(filters.command(["help"]) & filters.private & not_blacklisted)
 async def _help(_, m: types.Message):
     help_text = f"📚 <b>Menu Bantuan {app.name}</b>\n\n"
     help_text += "<blockquote>"

@@ -6,10 +6,10 @@
 from pyrogram import enums, filters, types
 
 from delta import app, db
-from delta.helpers import admin_check, utils
+from delta.helpers import admin_check, utils, not_blacklisted
 
 
-@app.on_message(filters.command(["auth"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["auth"]) & filters.group & not_blacklisted)
 @admin_check
 async def auth_user(_, message: types.Message):
     """Add user to authorized users list."""
@@ -48,7 +48,7 @@ async def auth_user(_, message: types.Message):
     )
 
 
-@app.on_message(filters.command(["unauth"]) & filters.group & ~app.bl_users)
+@app.on_message(filters.command(["unauth"]) & filters.group & not_blacklisted)
 @admin_check
 async def unauth_user(_, message: types.Message):
     """Remove user from authorized users list."""
