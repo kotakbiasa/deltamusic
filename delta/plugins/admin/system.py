@@ -185,7 +185,7 @@ async def logs_handler(_, message: types.Message):
         )
 
 
-@app.on_message(filters.command(["ping"]) & ~app.bl_users)
+@app.on_message(filters.command(["ping"]) & ~filters.user(list(app.bl_users)))
 @with_flood_wait_handler(max_retries=2)
 async def ping_handler(_, message: types.Message):
     """

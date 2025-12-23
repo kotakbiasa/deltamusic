@@ -8,7 +8,7 @@ from pyrogram import enums, filters, types
 from delta import app, db
 
 
-@app.on_message(filters.command(["blacklist", "unblacklist"]) & app.sudoers)
+@app.on_message(filters.command(["blacklist", "unblacklist"]) & filters.user(list(app.sudoers)))
 async def blacklist_cmd(_, message: types.Message):
     """Blacklist/unblacklist a user or chat."""
     
@@ -35,7 +35,7 @@ async def blacklist_cmd(_, message: types.Message):
                 parse_mode=enums.ParseMode.HTML
             )
         await db.add_blacklist(target_id)
-        app.bl_users.append(target_id)
+        app.bl_users.add(target_id)
         await message.reply_text(
             "🚫 <b>Blacklist Berhasil</b>\n\n<blockquote>Target telah ditambahkan ke daftar hitam</blockquote>",
             parse_mode=enums.ParseMode.HTML
@@ -47,8 +47,7 @@ async def blacklist_cmd(_, message: types.Message):
                 parse_mode=enums.ParseMode.HTML
             )
         await db.del_blacklist(target_id)
-        if target_id in app.bl_users:
-            app.bl_users.remove(target_id)
+        app.bl_users.discard(target_id)
         await message.reply_text(
             "✅ <b>Unblacklist Berhasil</b>\n\n<blockquote>Target telah dihapus dari daftar hitam</blockquote>",
             parse_mode=enums.ParseMode.HTML

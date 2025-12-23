@@ -32,7 +32,7 @@ async def add_sudo(_, message: types.Message):
             parse_mode=enums.ParseMode.HTML
         )
     
-    app.sudoers.append(user.id)
+    app.sudoers.add(user.id)
     await db.add_sudo(user.id)
     await message.reply_text(
         f"✅ <b>Sudoer Ditambahkan</b>\n\n<blockquote>{user.mention} telah ditambahkan ke daftar sudoers</blockquote>",
@@ -63,7 +63,7 @@ async def remove_sudo(_, message: types.Message):
             parse_mode=enums.ParseMode.HTML
         )
     
-    app.sudoers.remove(user.id)
+    app.sudoers.discard(user.id)
     await db.del_sudo(user.id)
     await message.reply_text(
         f"✅ <b>Sudoer Dihapus</b>\n\n<blockquote>{user.mention} telah dihapus dari daftar sudoers</blockquote>",

@@ -20,8 +20,8 @@ class Bot(pyrogram.Client):
         )
         self.owner = config.OWNER_ID
         self.logger = config.LOGGER_ID
-        self.bl_users = pyrogram.filters.user()
-        self.sudoers = pyrogram.filters.user(self.owner)
+        self.bl_users = set()
+        self.sudoers = {self.owner}
 
     async def boot(self):
         """
